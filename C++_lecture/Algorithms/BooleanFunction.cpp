@@ -14,11 +14,10 @@ class BooleanFunction{
     private:
         int dim;
         int* value;
-    public:
         bool BooleanTable[5];
     public:
         BooleanFunction();
-        BooleanFunction(string s){ dim = s.size(); Init(dim); for(int i = 0; i < dim; i++) value[i] = s[i] - '0';}
+        BooleanFunction(string s){ dim = s.size(); Init(dim); for(int i = 0; i < dim; i++) value[i] = s[i] - '0'; Result(); }
         virtual ~BooleanFunction(){}
         void Init(int len){ dim = len; value = new int[dim]; }
         void JudgeExist();
@@ -31,7 +30,7 @@ class BooleanFunction{
         void Result();
         void Print(){ Result(); cout << "T0 T1 S  M  L" << endl; for(int i = 0; i < 5; i++) cout << BooleanTable[i] << "  "; cout << endl; }
         void Print_value(){ for(int i = 0; i < dim; i++) cout << value[i] << ' '; cout << endl; }
-        void Inverse(){ Result(); for(int i = 0; i < 5; i++) BooleanTable[i] = 1 - BooleanTable[i]; }
+        bool GetInverse(int i){ return !BooleanTable[i]; }
 };
 bool BooleanFunction::JudgeS(){
     if(dim == 1) return false;
@@ -106,8 +105,7 @@ bool Judge(int count, ...){
     va_start(ap,count);
     while(count--){
         BooleanFunction temp = va_arg(ap,BooleanFunction);
-        temp.Inverse();
-        for(int i = 0; i < 5; i++) Sum[i] += temp.BooleanTable[i];
+        for(int i = 0; i < 5; i++) Sum[i] += temp.GetInverse(i);
     }
     va_end(ap);
     for(int i = 0; i < 5; i++) if(!Sum[i]) return false;
