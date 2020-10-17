@@ -21,16 +21,17 @@ int Get(int i, int j){
 int main(int argc, char *argv[])
 {
     struct stat sb;
-    int fd;
+    int fd, fd_out;
     if((fd = open(argv[1],O_RDONLY)) < 0 ) perror("open");
+    //if((fd_ = open("out.txt",O_RDWR|O_CREAT)) < 0 ) perror("open");
     int buf;
     for(int i = 0; i < row; i++){
         for(int j = 0; j < col; j++){
             read(fd,&buf,sizeof(int));
-            if(j > i) printf("%2d ",buf);
-            else printf("   ");
+            if(j > i) write(1,&buf,sizeof(int));
+            else write(1,"  ",2);
         }
-        printf("\n");
+        write(1,"\n",1);
     }
     return 0;
 }

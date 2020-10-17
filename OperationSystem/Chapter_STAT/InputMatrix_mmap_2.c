@@ -15,6 +15,8 @@
 
 #define SIZE 100
 #define SIZE_int SIZE*sizeof(int)
+#define row 10;
+#define col 10;
 
 int main(int argc, char *argv[])
 {
@@ -31,6 +33,6 @@ int main(int argc, char *argv[])
     srand(time(NULL));
     for(int i = 0; i < SIZE; i++) mapped[i] = rand()%100;
     if((msync((void*)mapped,SIZE_int,MS_SYNC)) == -1) perror("mysnc");
-    if((munmap((void*)mapped,SIZE_int) == -1)) perror("munmap");   
+    if((munmap((void*)mapped,SIZE_int) == -1)) perror("munmap");
     return 0;
 }
