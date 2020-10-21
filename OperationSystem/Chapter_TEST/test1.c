@@ -11,36 +11,44 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <error.h>
+#include <string.h>
 
 int main(int argc, char *argv[])
 {
     int f_output = open(argv[1],O_RDWR|O_CREAT);
+    int pgs = sysconf(_SC_PAGESIZE);
     int size_output = 0;
     int off_set = 0;
     char* mapped_output;
     for(int i = 2; i < argc; i++){
         int fd;
         struct stat sb;
-        if((fd = open(argv[i],O_RDWR)) < 0 ) perror("open");
-        if(fstat(fd,&sb) == -1) perror("fstat");
-        close(fd);
-        size_output += sb.st_size;
-    }
-    lseek(f_output,size_output-1,SEEK_END);
-    write(f_output,"",1);
-    if((mapped_output = (char*)mmap(NULL,size_output,PROT_READ|PROT_WRITE,MAP_SHARED,f_output,off_set)) == (void*)-1) perror("mmap");
-    for(int i = 2; i < argc; i++){
-        int fd;
-        struct stat sb;
         char* mapped;
+
         if((fd = open(argv[i],O_RDWR)) < 0 ) perror("open");
         if(fstat(fd,&sb) == -1) perror("fstat");
-        if((mapped = (char*)mmap(NULL,sb.st_size,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0)) == (void*)-1) perror("mmap");
+
+        int sz = ((sb.st_size-1)/pgs+1)*pgs;
+
+        if((mapped = (char*)mmap(NULL,sz,PROT_READ|PROT_WRITE,MAP_SHARED,fd,0)) == (void*)-1) perror("mmap");
         close(fd);
+
+        
+        printf("size_output = %d",size_output);
+        lseek(f_output,sb.st_size-1,SEEK_END);
+        write(f_output,"",1);
+        size_output += sb.st_size;
+        sz = ((size_output-1)/pgs+1)*pgs;
+
+        if((mapped_output = (char*)mmap(NULL,sz,PROT_READ|PROT_WRITE,MAP_SHARED,f_output,0)) == (void*)-1) perror("mmap");
         for(int i = 0; i < sb.st_size; i++) mapped_output[i+off_set] = mapped[i];
         off_set += sb.st_size;
+
         if((munmap((void*)mapped,sb.st_size) == -1)) perror("munmap");
     }
+
+    close(f_output);
     if((munmap((void*)mapped_output,size_output) == -1)) perror("munmap");
+
     return 0;
 }
