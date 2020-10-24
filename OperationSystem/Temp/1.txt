@@ -1,0 +1,6 @@
+total 28
+-rw------- 1 root root     0 Oct 23 17:34 1.txt
+-rwxr-xr-x 1 root root 13000 Oct 23 17:32 a.out
+-rw-r--r-- 1 root root  2612 Oct 23 01:10 create n process.c
+-rw-r--r-- 1 root root  1024 Oct 23 01:11 dup.c
+-rw-r--r-- 1 root root  1109 Oct 23 01:11 process_n.c
