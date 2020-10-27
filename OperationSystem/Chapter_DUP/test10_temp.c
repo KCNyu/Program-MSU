@@ -10,31 +10,34 @@
 #include <wait.h>
 #include <error.h>
 
+int i;
+void SigHndlr(int s){
+    i++;
+}
 int main(int argc, char *argv[])
 {
-    /*
-    for(int i = 1; i < argc; i++){
+    for(i = 1; i < argc; i++){
         int status;
         if(fork() == 0){
-            if(argv[i+1][0] != '-'){
-                if(execlp(argv[i],argv[i],NULL) < 0){
+            if(i != argc-1 && argv[i+1][0] == '-'){
+                kill(getppid(),SIGUSR1);
+                if(execlp(argv[i],argv[i],argv[i+1],NULL) < 0){
                     fprintf(stderr,"We can not create the program '%s'\n",argv[i]);
                     exit(1);
                 }
             }
             else{
-                if(execlp(argv[i],argv[i],argv[i+1],NULL) < 0){
+                if(execlp(argv[i],argv[i],NULL) < 0){
                     fprintf(stderr,"We can not create the program '%s'\n",argv[i]);
                     exit(1);
                 }
             }
         }
         else{
+            signal(SIGUSR1,SigHndlr);
             wait(&status);
             if(WEXITSTATUS(status)) return 1;
         }
-    }*/
-    char* s[] = {"-l","-r"};
-    execlp(argv[1],argv[1],s,NULL);
+    }
     return 0;
 }
