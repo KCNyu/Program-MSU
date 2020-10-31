@@ -11,17 +11,16 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-int fd, N;
+volatile int fd, N;
 
 void SigHndlr(int s){
     int count = N;
     char buf;
     int n;
     printf("\n");
-    while((n = read(fd,&buf,1)) > 0){
+    while(((n = read(fd,&buf,1)) > 0) && count != 0){
         printf("%c",buf);
         if(buf == '\n') count--;
-        if(count == 0) break;
     }
     if(count == 0) signal(SIGINT,SigHndlr);
     else signal(SIGINT,SIG_DFL);
