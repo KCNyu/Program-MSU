@@ -1,18 +1,18 @@
 /*================================================================
-* Filename:main.c
+* Filename:temp.c
 * Author: KCN_yu
-* Createtime:Thu 05 Nov 2020 10:46:46 AM CST
+* Createtime:Tue 17 Nov 2020 03:05:30 PM CST
 ================================================================*/
-#include "shell.h"
-#include <signal.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 int main(int argc, char *argv[])
 {
-    signal(SIGINT,SIG_IGN);
     while(1){
-        Print_prefix();
-        Input_command();
-        Run_command();
-        Init();
+        sleep(1);
+        printf("hello!\n");
     }
     return 0;
 }

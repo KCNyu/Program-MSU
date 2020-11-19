@@ -15,7 +15,7 @@
 #include <pwd.h>
 #include <unistd.h>
 
-#define MAX 128
+#define MAX 64
 
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -26,7 +26,7 @@ void Get_username(){
 }
 void Get_hostname(){
     char host[128];
-    gethostname(host,sizeof(char)*128);
+    gethostname(host,sizeof(char)*128-1);
     printf("%s",host);
 }
 void Get_dir(){
@@ -62,18 +62,12 @@ void Input_command(){
         while((cmd_tmp[cmd_count] = strtok(NULL,space)) != NULL) cmd_count++;
         cmd_tmp[cmd_count-1][strlen(cmd_tmp[cmd_count-1])-1] = '\0';
     }
-    else{
-        putchar('\n');
-        exit(EXIT_SUCCESS);
-    }
     for(int i = 0; i < cmd_count; i++) strcpy(cmd[i],cmd_tmp[i]);
 }
 void Analysis_command(){
     if(!strcmp(cmd[0],"") && IS_BACKGROUND){
-        read(fd_pid[0],&pid,sizeof(int));
-        printf("pid = %d has done\n",pid);
-        IS_END = true;
         IS_BACKGROUND = false;
+        IS_END = true;
     }
     else if(!(strcmp((cmd[0]),"cd")) || !(strcmp(cmd[0],"exit"))) IS_BUITIN = true;
     else{
@@ -108,7 +102,7 @@ void Run_builtin(){
     }
 }
 bool Run_external_redirect(int left, int right){
-    int input_num = 0, output_num = 0, output_append_num = 0;
+    int input_num = 0, output_num = 0;
     char *input_file = NULL, *output_file = NULL;
     int end_index = right;
     for(int i = left; i < right; i++){
@@ -122,11 +116,6 @@ bool Run_external_redirect(int left, int right){
             if(i+1 < right) output_file = cmd[i+1];
             if(end_index == right) end_index = i;
         }
-        else if(!strcmp(cmd[i],">>")){
-            output_append_num++;
-            if(i+1 < right) output_file = cmd[i+1];
-            if(end_index == right) end_index = i;
-        }
     }
     if(input_num == 1){
         int f;
@@ -135,7 +124,7 @@ bool Run_external_redirect(int left, int right){
             return false;
         }
     }
-    if(input_num > 1 || output_num > 1 || output_append_num > 1){
+    if(input_num > 1 || output_num > 1){
         fprintf(stderr,"too many redirection operators");
         return false;
     }
@@ -145,12 +134,7 @@ bool Run_external_redirect(int left, int right){
             dup2(f_input,STDIN_FILENO);
         }
         if(output_num == 1){
-            remove(output_file);
             int f_output = open(output_file,O_WRONLY|O_CREAT);
-            dup2(f_output,STDOUT_FILENO);
-        }
-        else if(output_append_num == 1){
-            int f_output = open(output_file,O_WRONLY|O_CREAT|O_APPEND);
             dup2(f_output,STDOUT_FILENO);
         }
         char** cmd_tmp = (char**)calloc(sizeof(char*),MAX);
@@ -221,25 +205,13 @@ bool Run_external_and(int left, int right){
     }
 }
 void Run_external(){
-    pipe(fd_pid);
     if(fork() == 0){
-        if(IS_BACKGROUND){
-            pid = fork();
-            if(pid == 0){
-                Run_external_and(0,cmd_count);
-                exit(0);
-            }
-            else{
-                write(fd_pid[1],&pid,sizeof(int));
-                exit(0);
-            }
-        }
-        else{
-            Run_external_and(0,cmd_count);
-            exit(0);
-        }
+        if(IS_BACKGROUND) printf("\npid = %d\n",getpid());
+        Run_external_and(0,cmd_count);
+        exit(0);
     }
     else{
+        if(IS_BACKGROUND) return;
         int status;
         wait(&status);
     }
