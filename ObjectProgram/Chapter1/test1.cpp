@@ -25,6 +25,10 @@ void swap(int& a, int& b){
     a = b;
     b = temp;
 }
+void print(int a = 1, int b = 3){
+    cout << a << endl;
+    cout << b << endl;
+}
 int main(int argc, char *argv[])
 {
     //cout << "Hello,World" << endl;
@@ -41,5 +45,6 @@ int main(int argc, char *argv[])
     refa = a+1;
     cout << a << endl;
     cout << refa << endl;
+    print(2,4);
     return 0;
 }
