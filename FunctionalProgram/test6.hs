@@ -12,14 +12,14 @@ mygates x = let n = mylistlength x
                 then  (n `div` 2 + 1) else (n `div` 2)) x)
                 b = mytakefirstnchildren (n `div` 2) reversedx
                 in a ++ b
-                where myreverse [] = []
-                      myreverse [x] = [x]
+                where myreverse []     = []
+                      myreverse [x]    = [x]
                       myreverse (x:xs) = myreverse xs ++ [x]
                       mytakefirstnchildren 0 x = []
                       mytakefirstnchildren 1 (x:xs) = [x]
                       mytakefirstnchildren n (x:xs) = x:(mytakefirstnchildren (n-1) xs)
-                      mylistlength [] = 0
-                      mylistlength [x] = 1
+                      mylistlength []     = 0
+                      mylistlength [x]    = 1
                       mylistlength (x:xs) = mylistlength(xs) + 1
 myhometask :: [a] -> [a]
 myhometask [] = []
@@ -28,13 +28,13 @@ myhometask (x:xs) = let len = mylen (x:xs)
                         half = (len + 1) `div` 2
                         (l,r) = mysplit half (x:xs)
                     in myreverse(l)++myreverse(r)
-                    where mylen [] = 0
-                          mylen [x] = 1
+                    where mylen []     = 0
+                          mylen [x]    = 1
                           mylen (x:xs) = 1 + mylen xs
                           mysplit 1 (x:xs) = ([x],xs)
                           mysplit n (x:xs) = let (l,r) = mysplit (n - 1) xs
                                              in (x:l,r)
-                          myreverse [x] = [x]
+                          myreverse [x]    = [x]
                           myreverse (x:xs) = myreverse(xs)++[x]
 middleSplitThenFlip :: [a] -> [a]
 middleSplitThenFlip [] = []
@@ -51,6 +51,6 @@ middleSplitThenFlip zs = list
         go (x:xs) [_] = ([], [x], xs)
         go (x:xs) []  = ([], [], x:xs)
 
-        rev [] = []
-        rev [x] = [x]
+        rev []     = []
+        rev [x]    = [x]
         rev (x:xs) = rev xs ++ [x]
