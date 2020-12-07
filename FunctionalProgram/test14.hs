@@ -50,11 +50,13 @@ getcol (x:xs) y =  [x !! (y-1)] ++ getcol xs y
 mult_vector :: Num a => [a] -> [a] -> a
 mult_vector xs ys = sum[(xs!!j) * (ys!!j) | j<- [0..length xs -1]]
 
+mult :: (Num a, Num t, Eq t) => [[a]] -> [[a]] -> t -> Int -> a
 mult x y i j = mult_vector row col
     where
         row = getrow x i
         col = getcol y j
 
+mult_matrix :: Num t => [[t]] -> [[t]] -> [[t]]
 mult_matrix x y = [[mult x y i j|j<-[1..len_y]]|i<-[1..len_x]]
     where
         len_x = length(x)
