@@ -84,3 +84,39 @@ solve_final xs = result
         xs2 = solve5 xs1 len
         result = getcol xs2 (len+1)
 
+--------------------------------------------------------------------
+
+mult_vector :: Num a => [a] -> [a] -> a
+mult_vector xs ys = sum[(xs!!j) * (ys!!j) | j<- [0..length xs -1]]
+
+mult :: (Num a, Num t, Eq t) => [[a]] -> [[a]] -> t -> Int -> a
+mult x y i j = mult_vector row col
+    where
+        row = getrow x i
+        col = getcol y j
+
+mult_matrix :: Num t => [[t]] -> [[t]] -> [[t]]
+mult_matrix x y = [[mult x y i j|j<-[1..len_y]]|i<-[1..len_x]]
+    where
+        len_x = length(x)
+        len_y = length(head y)
+
+--------------------------------------------------------------------
+
+rewrite :: Num t => [t] -> [[t]]
+rewrite [] = [[0]]
+rewrite (x:xs) = [[x]]++rewrite xs
+
+diff :: Num a => [[a]] -> [[a]] -> a
+diff xs ys = sum res
+    where
+        res = minus_row xs' ys'
+        xs' = getcol xs (length xs + 1)
+        ys' = getcol ys 1
+
+diff_final :: Fractional a => [[a]] -> a
+diff_final xs = diff xs k
+    where
+        res = rewrite (solve_final xs)
+        k = mult_matrix xs res
+
