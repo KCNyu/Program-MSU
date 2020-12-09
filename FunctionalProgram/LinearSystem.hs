@@ -12,7 +12,7 @@ getelem xs i j = xs !! (i-1) !! (j-1)
 --------------------------------------------------------------------
 
 minus_row :: Num t => [t] -> [t] -> [t]
-minus_row [] [] = []
+minus_row [] []         = []
 minus_row (x:xs) (y:ys) = x-y:minus_row xs ys
 
 minus_row_const :: Num t => [t] -> [t] -> t -> [t]
@@ -26,6 +26,45 @@ minus_system xs i j = minus_row_const row_i row_j n
         elem_i = row_i !! (j-1)
         elem_j = row_j !! (j-1)
         n = elem_i/elem_j
+
+--------------------------------------------------------------------
+
+find_from :: (Ord t, Num t) => [t1] -> t -> [t1]
+find_from (x:xs) n = if(n > 1) then find_from xs (n-1) else xs
+
+find_nozero :: (Fractional a, Ord a) => [a] -> a
+find_nozero [x] = x
+find_nozero (x:xs) = if(judge_zero x) then find_nozero(xs) else x
+
+find_nozero_index :: (Num t, Ord a, Fractional a) => [a] -> t
+find_nozero_index [x] = 1
+find_nozero_index (x:xs) = if(x == find) then 1 else 1+find_nozero_index(xs)
+    where find = find_nozero(x:xs)
+
+swaps :: [a] -> Int -> Int -> [a]
+swaps xs i j =
+    let elemI  = xs !! (i-1)
+        elemJ  = xs !! (j-1)
+        left   = take (i-1) xs
+        middle = take (j-i-1) (drop i xs)
+        right  = drop j xs
+    in left ++ [elemJ] ++ middle ++ [elemI] ++ right
+
+--------------------------------------------------------------------
+
+judge :: (Fractional a, Ord a) => [[a]] -> Int -> Int -> Bool
+judge xs i j = if(judge_zero elem) then True else False
+    where elem = getelem xs i j
+
+judge_zero :: (Ord a, Fractional a) => a -> Bool
+judge_zero x = if(x > -0.000000001 && x < 0.000000001) then True else False
+
+judge_matrix :: (Ord t, Fractional t) => [[t]] -> Int -> Int -> [[t]]
+judge_matrix xs i j = if(judge xs i j) then swaps xs i index_j else xs
+    where
+        index_j = (find_nozero_index col') + j
+        col' = find_from col j
+        col = getcol xs j
 
 --------------------------------------------------------------------
 
@@ -47,21 +86,26 @@ change_diag xs = change_diag' xs 1
 
 --------------------------------------------------------------------
 
-solve1 :: Fractional t1 => [[t1]] -> Int -> Int -> [[t1]]
-solve1 xs i j = change xs elem i
-    where elem = minus_system xs i j
+solve1 :: (Fractional t, Ord t) => [[t]] -> Int -> Int -> [[t]]
+solve1 xs i j = change xs' elem i
+    where
+        xs' = judge_matrix xs j j
+        elem = minus_system xs' i j
 
-solve2 :: Fractional t1 => [[t1]] -> Int -> Int -> [[t1]]
+solve2 :: (Ord t, Fractional t) => [[t]] -> Int -> Int -> [[t]]
 solve2 xs i j = if(i <= length xs) then solve2 solved (i+1) j else xs
     where solved = solve1 xs i j
 
-solve3 :: Fractional t1 => [[t1]] -> Int -> [[t1]]
+solve3 :: (Ord t, Fractional t) => [[t]] -> Int -> [[t]]
 solve3 xs j = if(j <= length xs -1) then solve3 solved (j+1) else xs
     where solved = solve2 xs (j+1) j
 
-solve_system :: Fractional a => [[a]] -> [[a]]
+solve_system :: (Fractional a, Ord a) => [[a]] -> [[a]]
 solve_system xs = change_diag xs'
     where xs' = solve3 xs 1
+
+solve :: (Fractional a, Ord a) => [[a]] -> [[a]]
+solve xs = solve3 xs 1
 
 solve4 :: Num t1 => [[t1]] -> Int -> Int -> [[t1]]
 solve4 xs i j = if(i <= j-1) then solve4 solved (i+1) j else xs
@@ -76,7 +120,7 @@ solve5 :: Num t1 => [[t1]] -> Int -> [[t1]]
 solve5 xs j = if(j >= 2) then solve5 solved (j-1) else xs
     where solved = solve4 xs 1 j
 
-solve_final :: Fractional a => [[a]] -> [a]
+solve_final :: (Fractional a, Ord a) => [[a]] -> [a]
 solve_final xs = result
     where
         len = length xs
@@ -104,7 +148,7 @@ mult_matrix x y = [[mult x y i j|j<-[1..len_y]]|i<-[1..len_x]]
 --------------------------------------------------------------------
 
 rewrite :: Num t => [t] -> [[t]]
-rewrite [] = [[0]]
+rewrite []     = [[0]]
 rewrite (x:xs) = [[x]]++rewrite xs
 
 diff :: Num a => [[a]] -> [[a]] -> a
@@ -114,9 +158,21 @@ diff xs ys = sum res
         xs' = getcol xs (length xs + 1)
         ys' = getcol ys 1
 
-diff_final :: Fractional a => [[a]] -> a
+diff_final :: (Fractional a, Ord a) => [[a]] -> a
 diff_final xs = diff xs k
     where
         res = rewrite (solve_final xs)
         k = mult_matrix xs res
 
+--------------------------------------------------------------------
+
+--isnull :: (Ord a, Fractional a) => [a] -> Bool
+--isnull [0] = True
+--isnull (x:xs) = (x > -0.000000001 && x < 0.000000001) && isnull xs
+--
+--rank :: (Num a, Ord a1, Fractional a1) => [[a1]] -> a
+--rank [x] = if(isnull x) then 0 else 1
+--rank (x:xs) = if(isnull x) then rank(xs) else 1+rank(xs)
+--
+--rank_final :: (Num a, Fractional a1, Ord a1) => [[a1]] -> a
+--rank_final xs = rank (solve xs)
