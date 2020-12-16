@@ -1,26 +1,18 @@
 /*================================================================
-* Filename:VVK.1.13.cpp
+* Filename:t.cpp
 * Author: KCN_yu
-* Createtime:Sun 06 Dec 2020 08:31:38 PM CST
+* Createtime:Fri 11 Dec 2020 01:02:53 AM CST
 ================================================================*/
 
 #include <iostream>
 #include <stdlib.h>
 using namespace std;
 
-struct mystr {
-    int a, b;
-    private: mystr(const mystr &){}
-};
 
-int i = sizeof(mystr);
-
-int f(mystr s) {
-return i;
-}
 int main(int argc, char *argv[])
 {
-    mystr s;
-    cout << f(s) << endl;
+    int a = 100;
+    //cin >> a;
+    cout << a;
     return 0;
 }

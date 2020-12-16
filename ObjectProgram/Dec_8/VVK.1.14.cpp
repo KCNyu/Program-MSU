@@ -1,26 +1,24 @@
 /*================================================================
-* Filename:VVK.1.13.cpp
+* Filename:VVK.1.14.cpp
 * Author: KCN_yu
-* Createtime:Sun 06 Dec 2020 08:31:38 PM CST
+* Createtime:Thu 10 Dec 2020 07:15:50 PM CST
 ================================================================*/
 
 #include <iostream>
 #include <stdlib.h>
 using namespace std;
 
-struct mystr {
-    int a, b;
-    private: mystr(const mystr &){}
+class smartstr
+{
+private:
+    string s;
+public:
+    smartstr(string t){ t = s; }
 };
 
-int i = sizeof(mystr);
-
-int f(mystr s) {
-return i;
-}
 int main(int argc, char *argv[])
 {
-    mystr s;
-    cout << f(s) << endl;
+    smartstr s1("hello");
+    //smartstr s2 = new smartstr[1];
     return 0;
 }

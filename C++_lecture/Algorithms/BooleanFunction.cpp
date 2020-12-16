@@ -114,12 +114,12 @@ bool Judge(int count, ...){
 
 int main(int argc, char *argv[])
 {
-    BooleanFunction f1("10");
+    BooleanFunction f1("1001");
     f1.Print();
     BooleanFunction f2("00101011");
     f2.Print();
-    BooleanFunction f3("0111");
+    BooleanFunction f3("1001");
     f3.Print();
-    cout << Judge(3,f1,f2,f3) << endl;
+    cout << Judge(2,f1,f2,f3) << endl;
     return 0;
 }

@@ -30,6 +30,7 @@ public:
     bool full() { return cnts == dim; }
     bool empty() { return cnts == 0; }
     void print();
+    ~mystack();
 };
 void mystack::push(int e){
     if(cnts >= dim){
@@ -57,6 +58,7 @@ void mystack::pop(){
 int mystack::top(){
     if(head != nullptr)
         return head->elem;
+    else return '\0';
 }
 void mystack::print(){
     if(head != nullptr && head->next == nullptr){
@@ -67,6 +69,14 @@ void mystack::print(){
     while(tmp != nullptr){
         cout << tmp->elem << endl;
         tmp = tmp->next;
+    }
+}
+mystack::~mystack(){
+    node* tmp;
+    while(head != nullptr){
+        tmp = head->next;
+        delete head;
+        head = tmp;
     }
 }
 int main(int argc, char *argv[])
