@@ -5,6 +5,7 @@ import Data.Char
 data MyException = NoneResult deriving(Show)
 instance Exception MyException
 
+solve :: (Ord t, Floating t) => t -> t -> t -> [t]
 solve a b c = if(derta' < 0 || a == 0) then throw NoneResult else [x1,x2]
     where
         derta = sqrt derta'
