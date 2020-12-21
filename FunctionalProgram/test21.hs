@@ -3,6 +3,7 @@ f (n,m) (x:xs)
     | (n == 0 || m == 0) = f(n-1,m-1) xs
     | otherwise = x:(f (n-1,m-1) xs)
 
+mydivid :: (Ord a, Num a) => a -> a -> a -> a
 mydivid eps c h = converge eps (iterate(\x -> x*(2-c*x)) h)
 mydivid' c = converge 1e-20 (iterate(\x -> x*(2-c*x)) 1e-19)
 
