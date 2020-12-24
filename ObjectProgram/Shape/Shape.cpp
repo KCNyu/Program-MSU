@@ -75,6 +75,16 @@ void Rhombus::print() const{
     cout << "Rhombus: ";
     Shape::print();
 }
+
+///////////////////////////////////////////////////////////////////////
+
+Square::Square(double edge):Parallelogram(edge,edge,M_PI/2){}
+
+void Square::print() const{
+    cout << "Square: ";
+    Shape::print();
+}
+
 ///////////////////////////////////////////////////////////////////////
 
 Circle::Circle(double r){
@@ -121,8 +131,12 @@ void Triangle::print() const{
 ///////////////////////////////////////////////////////////////////////
 
 void Shapes(Shape *p[], int n){
+    double sum = 0;
     for(int i = 0; i < n; i++){
         cout << "Shape #" << i+1 << ":" << endl;
         p[i]->print(); cout << endl;
+        sum += p[i]->getArea();
     }
+    cout << "sumArea: " << sum << endl;
 }
+

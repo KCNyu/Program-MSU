@@ -22,17 +22,23 @@ public:
     virtual void print() const;
 };
 
-class Rectangle : public Parallelogram{
+class Rectangle : virtual public Parallelogram{
 public:
     Rectangle(double width = 0, double height = 0);
-    double getArea() const;
+    virtual double getArea() const;
     virtual void print() const;
 };
 
-class Rhombus : public Parallelogram{
+class Rhombus : virtual public Parallelogram{
 public:
     Rhombus(double edge = 0,double angle = 0);
-    double getPerim() const;
+    virtual double getPerim() const;
+    virtual void print() const;
+};
+
+class Square : public Rhombus, public Rectangle{
+public:
+    Square(double edge = 0);
     virtual void print() const;
 };
 
