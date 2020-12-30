@@ -13,14 +13,6 @@ using namespace std;
 
 ///////////////////////////////////////////////////////////////////////
 
-double Shape::getArea() const{
-    return 0;
-}
-
-double Shape::getPerim() const{
-    return 0;
-}
-
 void Shape::print() const{
     cout << "Area: " << getArea() << " Perim: " << getPerim() << endl;
 }

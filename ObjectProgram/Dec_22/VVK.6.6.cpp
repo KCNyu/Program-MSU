@@ -40,13 +40,13 @@ public:
         return x;
     }
     D(int x = 0) {}
-    operator int () { return 100; }
+    operator int () const{ return 100; }
 };
 int main() {
     const D d;
     C  const * const t = &d;
     t -> f(3);
-    //t -> f(d);
+    t -> f(d);
     t -> g();
     t -> h(5);
     return 0;

@@ -3,8 +3,8 @@
 
 class Shape{
 public:
-    virtual double getArea() const;
-    virtual double getPerim() const;
+    virtual double getArea() const = 0;
+    virtual double getPerim() const = 0;
     virtual void print() const;
     virtual ~Shape();
     static int count;
