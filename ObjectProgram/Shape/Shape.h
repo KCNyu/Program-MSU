@@ -31,7 +31,7 @@ public:
 
 class Rhombus : virtual public Parallelogram{
 public:
-    Rhombus(double edge = 0,double angle = 0);
+    Rhombus(double edge = 0, double angle = 0);
     virtual double getPerim() const;
     virtual void print() const;
 };

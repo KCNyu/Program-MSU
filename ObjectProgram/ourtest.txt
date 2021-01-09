@@ -1,0 +1,21 @@
+CREATE TABLE Students (First_name TEXT(10),Surname TEXT(15), Age LONG, Phone TEXT(9))
+INSERT INTO Students ('Sergey', 'Ivanov', 18, '145-45-45')
+INSERT INTO Students ('Alexey', 'Petrov', 20, '343-65-45')
+INSERT INTO Students ('Andrey', 'Fedorov', 23, '123-45-18')
+INSERT INTO Students ('Alexandre', 'Zaharov', 20, '345-33-33')
+SELECT First_name,Surname FROM Students WHERE Age IN(18,19,20)
+SELECT * FROM Students WHERE Phone LIKE '%-%-45'
+SELECT * FROM Students WHERE Phone LIKE '%45%'
+SELECT Phone FROM Students WHERE Surname='Ivanov'
+SELECT Surname FROM Students WHERE ALL
+SELECT * FROM Students WHERE First_name LIKE '[ABC][^mno]_x%'
+SELECT Surname, Phone FROM Students WHERE Age > 19 AND Surname > 'M'
+UPDATE Students SET Age = Age+1 WHERE ALL
+SELECT * FROM Students WHERE ALL
+EXIT
+
+
+
+
+
+

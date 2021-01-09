@@ -44,13 +44,23 @@ void h (list <int> & lst){
     list<int> :: iterator p = lst.begin();
     lst.insert(p,*p);
     while (p != lst.end()){
-        p++;
-        if(p == lst.end()) break;
         lst.insert(p,*p);
+        p++;
     }
     for(list<int>::reverse_iterator iter = lst.rbegin(); iter != lst.rend();){
         cout << *(iter++) << endl;
     }
+}
+template <typename container>
+typename container::value_type f1(const container &A){
+    typename container::value_type sum = 0;
+    typename container::const_reverse_iterator i = A.rbegin();
+    for(int j = 0; j < 3; j++){
+        cout << *i << endl;
+        sum += *i;
+        i++;
+    }
+    return sum;
 }
 int main(int argc, char *argv[])
 {
@@ -58,5 +68,6 @@ int main(int argc, char *argv[])
     cout << g(l) << endl;
     f(1,l);
     h(l);
+    cout << f1(l) << endl;
     return 0;
 }

@@ -204,7 +204,7 @@ int AVLTree<Key>::Search(Key* pKey){
     if(*this->pKey == *pKey) return this->nNom;
     return (*this->pKey < *pKey) ? pLeft->Search(pKey) : pRight->Search(pKey);
 }
-
+/*
 class ArraySelect{
     private:
         int nDim;
@@ -285,6 +285,7 @@ ostream& operator<<(ostream& os, const ArraySelect& as){
     os << endl;
     return os;
 }
+*/
 int main(int argc, char *argv[])
 {
     StudentsAll stall;
