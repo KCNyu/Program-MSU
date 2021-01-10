@@ -1,6 +1,6 @@
-[submodule "SimpleDataBase"]
-	path = SimpleDataBase
-	url = https://github.com/KCNyu/SimpleDataBase.git
 [submodule "ObjectProgram/SimpleDataBase"]
 	path = ObjectProgram/SimpleDataBase
 	url = https://github.com/KCNyu/SimpleDataBase.git
+[submodule "Matrix"]
+	path = ObjectProgram/Matrix
+	url = https://github.com/KCNyu/Matrix
