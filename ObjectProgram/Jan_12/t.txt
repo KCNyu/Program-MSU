@@ -1,0 +1,15 @@
+program
+var a, b: int;
+begin
+    read(a);
+    read(b);
+    if (a=1) or (b=1) then write(1)
+    else
+        while a!=b do
+        begin
+            if (a>b) then a:=a-b
+            else
+                b:=b-a
+        end;
+        write(a)
+end@

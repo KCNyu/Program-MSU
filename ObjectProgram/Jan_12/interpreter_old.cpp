@@ -741,12 +741,12 @@ void Executer::execute(Poliz &prog) {
                                int k;
                                i = args.pop();
                                if (TID[i].get_type() == LEX_INT) {
-                                   cout << "Input int value for" << TID[i].get_name() << endl;
+                                   cout << "Input int value for " << TID[i].get_name() << endl;
                                    cin >> k;
                                } else {
                                    char j[20];
 rep:
-                                   cout << "Input boolean value (true or false) for" << TID[i].get_name()
+                                   cout << "Input boolean value (true or false) for " << TID[i].get_name()
                                        << endl;
                                    cin >> j;
                                    if (!strcmp(j, "true"))
@@ -832,13 +832,13 @@ void Interpretator::interpretation() {
 
 int main() {
     try {
-        /*
-           Interpretator I ("program.txt");
+           Interpretator I ("t.txt");
            I.interpretation ();
-        */
+        /*
         Scanner S("program.txt");
         Lex l;
         while ((l = S.get_lex()).get_type() != LEX_FIN) cout << l;
+        */
         return 0;
     } catch (char c) {
         cout << "unexpected symbol " << c << endl;

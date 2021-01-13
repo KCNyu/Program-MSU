@@ -1,0 +1,19 @@
+program
+var cur, prev, next, n: int;
+begin
+  read(n);
+  if (n=0) or (n=1) then write (n)
+  else
+    begin
+       prev:=0;
+       cur:=1;
+       while n>1 do
+          begin
+             n:=n-1;
+            next:=cur+prev;
+            prev:=cur;
+            cur:=next
+         end
+       write(cur)
+     end
+end@
