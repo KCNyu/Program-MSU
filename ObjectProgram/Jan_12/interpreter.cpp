@@ -24,6 +24,7 @@ enum type_of_lex {
     LEX_NULL,                                                                                   /* 0*/
     LEX_AND, LEX_BEGIN, LEX_BOOL, LEX_DO, LEX_ELSE, LEX_END, LEX_IF, LEX_FALSE, LEX_INT,        /* 9*/
     LEX_NOT, LEX_OR, LEX_PROGRAM, LEX_READ, LEX_THEN, LEX_TRUE, LEX_VAR, LEX_WHILE, LEX_WRITE,  /*18*/
+    LEX_REPEAT, LEX_UNTIL,
     LEX_FIN,                                                                                    /*19*/
     LEX_SEMICOLON, LEX_COMMA, LEX_COLON, LEX_ASSIGN, LEX_LPAREN, LEX_RPAREN, LEX_EQ, LEX_LSS,   /*27*/
     LEX_GTR, LEX_PLUS, LEX_MINUS, LEX_TIMES, LEX_SLASH, LEX_LEQ, LEX_NEQ, LEX_GEQ,              /*35*/
@@ -32,7 +33,7 @@ enum type_of_lex {
     POLIZ_LABEL,                                                                                /*38*/
     POLIZ_ADDRESS,                                                                              /*39*/
     POLIZ_GO,                                                                                   /*40*/
-    POLIZ_FGO                                                                                   /*41*/
+    POLIZ_FGO                                                                                  /*41*/
 };
 
 /////////////////////////  Класс Lex  //////////////////////////
@@ -141,7 +142,7 @@ class Scanner {
 
 const char *
 Scanner::TW    [] = { "", "and", "begin", "bool", "do", "else", "end", "if", "false", "int", "not", "or", "program",
-    "read", "then", "true", "var", "while", "write", NULL };
+    "read", "then", "true", "var", "while", "write", "repeat", "until", NULL };
 
 const char *
 Scanner::TD    [] = { "@", ";", ",", ":", ":=", "(", ")", "=", "<", ">", "+", "-", "*", "/", "<=", "!=", ">=", NULL };
@@ -384,6 +385,9 @@ void Parser::B () {
         S ();
         while ( c_type == LEX_SEMICOLON ) {
             gl ();
+            while(c_type == LEX_SEMICOLON) {
+                gl ();
+            }
             S ();
         }
         if ( c_type == LEX_END ) {
@@ -398,7 +402,7 @@ void Parser::B () {
 }
 
 void Parser::S () {
-    int pl0, pl1, pl2, pl3;
+    int pl0, pl1, pl2, pl3, pl4, pl5;
 
     if ( c_type == LEX_IF ) {
         gl ();
@@ -409,20 +413,34 @@ void Parser::S () {
         poliz.push_back ( Lex(POLIZ_FGO) );
         if ( c_type == LEX_THEN ) {
             gl ();
-            S ();
-            pl3 = poliz.size ();
-            poliz.push_back ( Lex () );
-
-            poliz.push_back ( Lex ( POLIZ_GO ) );
-            poliz[pl2] = Lex ( POLIZ_LABEL, poliz.size() );
-
-            if ( c_type == LEX_ELSE ) {
-                gl ();
-                S ();
-                poliz[pl3] = Lex ( POLIZ_LABEL, poliz.size() );
+            if (c_type == LEX_ELSE) {
+                    pl3 = poliz.size ();
+                    poliz.push_back ( Lex () );
+                    poliz.push_back ( Lex ( POLIZ_GO ) );
+                    poliz[pl2] = Lex ( POLIZ_LABEL, poliz.size() );
+                    gl ();
+                    S ();
+                    poliz[pl3] = Lex ( POLIZ_LABEL, poliz.size() );
             }
-            else
-                throw curr_lex;
+            else{
+                S ();
+                pl3 = poliz.size ();
+                poliz.push_back ( Lex () );
+                poliz.push_back ( Lex ( POLIZ_GO ) );
+                poliz[pl2] = Lex ( POLIZ_LABEL, poliz.size() );
+                if ( c_type == LEX_ELSE ) {
+                    gl ();
+                    S ();
+                    poliz[pl3] = Lex ( POLIZ_LABEL, poliz.size() );
+                }
+                /*
+                else
+                    throw curr_lex;
+                */
+                else{
+                    poliz[pl3] = Lex ( POLIZ_LABEL, poliz.size() );
+                }
+            }
         }
         else
             throw curr_lex;
@@ -445,6 +463,62 @@ void Parser::S () {
         else
             throw curr_lex;
     }//end while
+    /*
+    else if ( c_type == LEX_REPEAT ){
+        pl4 = poliz.size ();
+        gl ();
+        S ();
+        if ( c_type == LEX_UNTIL ) {
+            gl ();
+            E ();
+            eq_bool ();
+            pl5 = poliz.size ();
+            poliz.push_back ( Lex () );
+            poliz.push_back ( Lex (POLIZ_FGO) );
+
+            poliz.push_back ( Lex ( POLIZ_LABEL, pl4 ) );
+            poliz.push_back ( Lex ( POLIZ_GO) );
+            poliz[pl5] = Lex (POLIZ_LABEL, poliz.size() );
+        }
+        else
+            throw curr_lex;
+    }//end do while
+    */
+    else if ( c_type == LEX_REPEAT ){
+        pl4 = poliz.size ();
+        gl ();
+        S ();
+        if ( c_type == LEX_UNTIL ) {
+            gl ();
+            E ();
+            eq_bool ();
+
+            poliz.push_back ( Lex ( POLIZ_LABEL, pl4 ) );
+            poliz.push_back ( Lex ( POLIZ_FGO) );
+        }
+        else
+            throw curr_lex;
+    }// end repeat until
+    /*
+    else if ( c_type == LEX_REPEAT ){
+        pl4 = poliz.size ();
+        poliz.push_back( Lex () );
+        poliz.push_back( Lex (POLIZ_GO) );
+        pl5 = poliz.size ();
+        gl ();
+        S ();
+        if ( c_type == LEX_UNTIL ) {
+            poliz[pl4] = Lex ( POLIZ_LABEL, poliz.size() );
+            gl ();
+            E ();
+            eq_bool ();
+            poliz.push_back ( Lex ( POLIZ_LABEL, pl5 ) );
+            poliz.push_back ( Lex ( POLIZ_FGO) );
+        }
+        else
+            throw curr_lex;
+    }// end repeat until
+    */
     else if ( c_type == LEX_READ ) {
         gl ();
         if ( c_type == LEX_LPAREN ) {
@@ -808,10 +882,9 @@ void Interpretator::interpretation () {
     pars.analyze ();
     E.execute ( pars.poliz );
 }
-
-int main () {
+int main(int argc, char *argv[]) {
     try {
-        Interpretator I ( "t.txt" );
+        Interpretator I ( argv[1] );
         I.interpretation ();
         return 0;
     }

@@ -13,7 +13,7 @@ begin
             next:=cur+prev;
             prev:=cur;
             cur:=next
-         end
+         end;
        write(cur)
      end
 end@

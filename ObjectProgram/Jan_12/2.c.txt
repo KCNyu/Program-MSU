@@ -1,0 +1,16 @@
+program
+var a, b: int;
+begin
+    read(a);
+    read(b);
+    repeat
+        begin
+            a:=a+1;
+            ;     ;
+            ;; ;;
+            ;;
+            write(a)
+        end
+    until a=b;
+    if(a=b) then write(1234)
+end@
