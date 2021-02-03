@@ -1,0 +1,6 @@
+program
+var a,b:int;
+begin
+    a:=0; b:=1;;
+if a>b then else write(b)
+    end@

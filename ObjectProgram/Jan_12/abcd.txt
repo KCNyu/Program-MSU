@@ -1,0 +1,15 @@
+program
+var x, y: int;
+begin
+  read(x);
+  read(y);;;;;  ;;;;
+  ;; ; ; ; ; ;;
+   ;;;;
+  repeat
+  begin
+    x:=x+2;
+    if x>y then else write(x)
+  end
+  until x>10;
+  if x>y then write(y)
+end@

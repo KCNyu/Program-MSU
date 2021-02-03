@@ -158,8 +158,9 @@ const char *
 Scanner::TD    [] = { "@", ";", ",", ":", ":=", "(", ")", "=", "<", ">", "+", "-", "*", "/", "<=", "!=", ">=", NULL };
 
 Lex Scanner::get_lex () {
-    enum    state { H, IDENT, NUMB, COM, ALE, NEQ };
+    enum    state { H, IDENT, NUMB, COM, ALE, NEQ, CHAR };
     int     d, j;
+    char    t;
     string  buf;
     state   CS = H;
     do {
@@ -187,6 +188,10 @@ Lex Scanner::get_lex () {
                 else if (c == '!') {
                     buf.push_back (c);
                     CS  = NEQ;
+                }
+                else if (c == '\'' ) {
+                    //buf.push_back (c);
+                    CS = CHAR;
                 }
                 else {
                     buf.push_back (c);
@@ -249,6 +254,14 @@ Lex Scanner::get_lex () {
                 else
                     throw '!';
                 break;
+            case CHAR:
+                t = c;
+                gc ();
+                if( c == '\'')
+                    return Lex ( LEX_WORD, t );
+                else
+                    throw c;
+                break;
         } //end switch
     } while (true);
 }
@@ -261,6 +274,9 @@ ostream & operator<< ( ostream &s, Lex l ) {
         t = Scanner::TD[ l.t_lex - LEX_FIN ];
     else if ( l.t_lex == LEX_NUM )
         t = "NUMB";
+    else if ( l.t_lex == LEX_WORD ){
+        t = "WORD";
+    }
     else if ( l.t_lex == LEX_ID )
         t = TID[l.v_lex].get_name ();
     else if ( l.t_lex == POLIZ_LABEL )
@@ -628,6 +644,11 @@ void Parser::F () {
         poliz.push_back ( curr_lex );
         gl ();
     }
+    else if ( c_type == LEX_WORD ) {
+        st_lex.push ( LEX_CHAR );
+        poliz.push_back ( curr_lex );
+        gl ();
+    }
     else if ( c_type == LEX_TRUE ) {
         st_lex.push ( LEX_BOOL );
         poliz.push_back ( Lex (LEX_TRUE, 1) );
@@ -678,7 +699,7 @@ void Parser::check_id () {
 }
 
 void Parser::check_op () {
-    type_of_lex t1, t2, op, t = LEX_INT, r = LEX_BOOL;
+    type_of_lex t1, t2, op, t = LEX_INT, r = LEX_BOOL, c = LEX_CHAR;
 
     from_st ( st_lex, t2 );
     from_st ( st_lex, op );
@@ -688,8 +709,12 @@ void Parser::check_op () {
         r = LEX_INT;
     if ( op == LEX_OR || op == LEX_AND )
         t = LEX_BOOL;
-    if ( t1 == t2  &&  t1 == t )
+    if ( t1 == t2 && (t1 == t || t1 == c) )
         st_lex.push (r);
+    else if ( t1 != t2 ){
+        r = LEX_CHAR;
+        st_lex.push (r);
+    }
     else
         throw "wrong types are in operation";
     poliz.push_back (Lex (op) );
@@ -732,10 +757,11 @@ void Executer::execute ( vector<Lex> & poliz ) {
     Lex pc_el;
     stack < int > args;
     int i, j, index = 0, size = poliz.size();
+    int temp;
     while ( index < size ) {
         pc_el = poliz [ index ];
         switch ( pc_el.get_type () ) {
-            case LEX_TRUE: case LEX_FALSE: case LEX_NUM: case POLIZ_ADDRESS: case POLIZ_LABEL:
+            case LEX_TRUE: case LEX_FALSE: case LEX_NUM: case LEX_WORD: case POLIZ_ADDRESS: case POLIZ_LABEL:
                 args.push ( pc_el.get_value () );
                 break;
 
@@ -782,7 +808,12 @@ void Executer::execute ( vector<Lex> & poliz ) {
 
             case LEX_WRITE:
                 from_st ( args, j );
-                cout << j << endl;
+                if(poliz[index-1].get_type() == LEX_ID){
+                    temp = poliz[index-1].get_value();
+                    if(TID[temp].get_type() == LEX_CHAR) cout << (char)j << endl;
+                    else cout << j << endl;
+                }
+                else cout << j << endl;
                 break;
 
             case LEX_READ:
@@ -912,6 +943,9 @@ int main(int argc, char *argv[]) {
     try {
         Interpretator I ( argv[1] );
         I.interpretation ();
+        //Scanner S("char.txt");
+        //Lex l;
+        //while ((l = S.get_lex()).get_type() != LEX_FIN) cout << l;
         return 0;
     }
     catch ( char c ) {
@@ -923,7 +957,7 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     catch ( const char *source ) {
-        cout << source << endl;
+       cout << source << endl;
         return 1;
     }
 }

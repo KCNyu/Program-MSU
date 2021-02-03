@@ -1,7 +1,0 @@
-program
-var a, b: char;
-begin
-    read(a);
-    read(b);
-    write(a)
-end@

@@ -35,6 +35,11 @@ int main(int argc, char *argv[])
     cout << p(t) << endl;
     put(t,100);
     cout << a << endl;
+    char c1 = 'a';
+    char c2 = 'b';
+    cout << (c1*c2) << endl;
 
+    int f = 1+1;
+    cout << f;
     return 0;
 }

@@ -1,0 +1,22 @@
+program
+var a, b: char;
+begin
+    read(a);
+    b:='z';
+
+    if(b>a) then write(b);
+
+    ;
+    ;;   ;; ; ;;
+    ; ;
+
+    repeat
+        begin
+            a:=a+1;
+            write(a)
+        end
+    until a=b;
+
+    if(a!=b) then else write(123456)
+end@
+
