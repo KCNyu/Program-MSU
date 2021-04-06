@@ -18,6 +18,9 @@ void getNext(char *str, int *next, int len){
             k++;
         next[q] = k;
     }
+    for(int i = 0; i < len; i++){
+        printf("next[%d] = %d\n",i,next[i]);
+    }
 }
 int KMP(char *str, int slen, char *ptr, int plen){
     int count = 0;
