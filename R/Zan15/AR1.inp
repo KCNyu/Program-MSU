@@ -1,0 +1,7 @@
+scalar alfa=0.2
+scalar sigma=1.0
+series y=0
+series epsilon=randgen(n,0,1)
+series epsilon1=randgen(n,0,0.1)
+smpl 2 500
+y=alfa*y(-1)+epsilon

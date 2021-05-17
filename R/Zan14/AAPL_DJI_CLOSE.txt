@@ -1,0 +1,15 @@
+Model 3: OLS, using observations 2021-01-04:2021-04-19 (T = 73)
+Dependent variable: AAPLClose
+
+             coefficient   std. error   t-ratio   p-value 
+  --------------------------------------------------------
+  const        1.42553      0.160881     8.861    4.25e-13 ***
+  DJIClose    −0.408120     0.152323    −2.679    0.0092   ***
+
+Mean dependent var   0.994736   S.D. dependent var   0.049595
+Sum squared resid    0.160836   S.E. of regression   0.047595
+R-squared            0.091824   Adjusted R-squared   0.079032
+F(1, 71)             7.178654   P-value(F)           0.009162
+Log-likelihood       119.7184   Akaike criterion    −235.4367
+Schwarz criterion   −230.8558   Hannan-Quinn        −233.6111
+rho                  0.913886   Durbin-Watson        0.199123
