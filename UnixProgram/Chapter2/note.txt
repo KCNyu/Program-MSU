@@ -1,0 +1,16 @@
+g++ add.c sub.c -c
+# add.o sub.o
+
+ar csr libmymath.a add.o sub.o
+# get static library
+# c - create
+# s - make a index ???
+# r - replace ???
+
+g++ test.cpp libmymath.a
+# link the static library
+
+==============================
+
+In language has implicit declaration, which means int add(int,int);
+but in cpp doesn't have, so we need the mymath.h(only declaration), and have to include "mymath"
