@@ -1,0 +1,16 @@
+g++ -c add.cpp sub.cpp -fPIC
+# add.o sub.o
+# -fPIC generate location-independent code
+
+g++ -shared -o libmymath.so add.o sub.o
+# generate dynamic library
+
+g++ test.cpp -L ./lib -l mymath -I ./inc -o test
+# -L decide the path library
+# -l decide the name library
+# -I include headfile
+
+export LD_LIBRARY_PATH=./lib
+# no blank space
+
+==============================
