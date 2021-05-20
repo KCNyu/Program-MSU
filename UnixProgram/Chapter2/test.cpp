@@ -10,6 +10,7 @@ using namespace std;
 
 int main(int argc, char *argv[])
 {
+    vector<int> v;
     cout << add(1,2) << endl;
     cout << sub(1,2) << endl;
     return 0;

@@ -7,8 +7,10 @@ ar csr libmymath.a add.o sub.o
 # s - make a index ???
 # r - replace ???
 
-g++ test.cpp libmymath.a
+g++ test.cpp ./lib/libmymath.a -I ./inc -o test
 # link the static library
+# lib --library
+# inc --include headfile
 
 ==============================
 
