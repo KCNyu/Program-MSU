@@ -51,13 +51,13 @@ int main(int argc, char *argv[])
     if (argc>1)
         n=atol(argv[1]);
     ReWriteRand("myfile",n);
-    
+
     fp=fopen("myfile","r+");
     QuicksortRaw(fp,0,n-1);
     fclose(fp);
-    
+
     clock_t endtime = clock();
     printf("Runing time:%ldms\n",endtime-begintime);
     return 0;
 }
-   
+

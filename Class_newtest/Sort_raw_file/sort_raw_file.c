@@ -58,10 +58,10 @@ int main(int argc, char **argv) {
     if (argc>1)
         n=atol(argv[1]);
     ReWriteRand("RandArr.bin", n);
-    
+
     fp=fopen("RandArr.bin", "r+b");
     SortRaw(fp,n);
     fclose(fp);
     return 0;
 }
-    
+
