@@ -58,33 +58,38 @@ int main(int argc, char *argv[])
         if(pid == 0){
             int child_pid = getpid();
             write(fd[1],&child_pid,sizeof(int));
-            close(fd[1]);
-            close(fd[0]);
-            printf("taskname:%s taskid:%d\n",argv[i],child_pid);
+            close(fd[1]); close(fd[0]);
+            // close all child proccess read and write of pipe
+            printf("taskname: %8s taskid: %d\n",argv[i],child_pid);
             execlp(argv[i],argv[i],NULL);
         }
     }
     // this is parent
     if(i == argc){
         start = clock();
+
+        int n;
+        int tmp_pid;
+        close(fd[1]);
+        while((n = read(fd[0],&tmp_pid,sizeof(int))) != 0){
+            ret_pid[task++] = tmp_pid;
+        }
+        // when all proccesses fd[1] (write) have been closed
+        // and don't have any data from pipe
+        // then read from pipe will return 0
+        close(fd[0]);
+        // close pipe read
+
         while((wpid = waitpid(-1,NULL,WNOHANG)) != -1){
-            if(task < argc-1){
-                int tmp_pid;
-                read(fd[0],&tmp_pid,sizeof(int));
-                ret_pid[task++] = tmp_pid;
-            }
-            else if(task == argc-1){
-                close(fd[0]);
-                close(fd[1]);
-                task++;
-            }// close pipe
             if(wpid > 0){
                 printf("pid = %d done!\n",wpid);
                 fetchPid(ret_pid,wpid,argc-1);
             }
             else if(wpid == 0){
+
                 end = clock();
                 double time = (double)(end - start) / CLOCKS_PER_SEC;
+
                 if(!flag){
                     if(time > 5){
                         while((failed = getFirstFailPid(ret_pid,argc-1)) != -1){
