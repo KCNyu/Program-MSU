@@ -12,7 +12,6 @@
 
 int main(int argc, char *argv[])
 {
-    printf("temp pid = %d\n",getpid());
     while(1){
         sleep(1);
         printf("hello!\n");
