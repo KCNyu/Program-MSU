@@ -11,13 +11,16 @@
 #include <fcntl.h>
 #include <wait.h>
 #include <stdbool.h>
-#include <sys/ipc.h>
-#include <sys/shm.h>
-#include <string.h>
-#include <sys/msg.h>
 #include <unistd.h>
-#include <time.h>
 #include <sys/mman.h>
+
+bool flag = false;
+int *ret_pid;
+// save the pid and the reult of pid
+// 0 means success
+// >0 means pid which has no complete
+// -1 initial number or pid killed by SIGTERM
+int size;
 
 void fetchPid(int* ret_pid, pid_t ret, const int size){
     for(int i = 0; i < size; i++){
@@ -37,18 +40,29 @@ int getFirstFailPid(int* ret_pid, const int size){
     }
     return failed;
 }
+void SigHandlr(int s){
+    alarm(5);
+    int failed;
+    if(!flag){
+        while((failed = getFirstFailPid(ret_pid,size)) != -1){
+            kill((pid_t)failed, SIGTERM); // send SIGTERM to the pid which has no return
+            printf("i have sent SIGTERM to %d\n",failed);
+            //printf("i have sent SIGTERM to all child proccess\n");
+        }
+        flag = true;
+    }
+    else{
+        kill(0,SIGKILL);
+        //printf("i have sent SIGKILL to %d\n",pid);
+        printf("i have sent SIGKILL to all child proccess\n");
+    }
+}
 int main(int argc, char *argv[])
 {
     int i;
-    int *ret_pid; // save the pid and the reult of pid
-    // 0 means success
-    // >0 means pid which has no complete
-    // -1 initial number or pid killed by SIGTERM
-    clock_t start, end;
-    bool flag = false;
-    int failed;
+    size = argc-1;
 
-    ret_pid = (int*)mmap(NULL,sizeof(int)*(argc-1),PROT_READ|PROT_WRITE,MAP_SHARED|MAP_ANONYMOUS,-1,0);
+    ret_pid = (int*)mmap(NULL,sizeof(int)*(size),PROT_READ|PROT_WRITE,MAP_SHARED|MAP_ANONYMOUS,-1,0);
     // Create an anonymous mapping area to store the pid
     pid_t pid, wpid;
     // this is child
@@ -64,36 +78,15 @@ int main(int argc, char *argv[])
         }
     }
     // this is parent
-    start = clock();
-
+    signal(SIGALRM,SigHandlr);
+    alarm(10);
     while((wpid = waitpid(-1,NULL,WNOHANG)) != -1){
         if(wpid > 0){
             printf("pid = %d done!\n",wpid);
-            fetchPid(ret_pid,wpid,argc-1);
+            fetchPid(ret_pid,wpid,size);
         }
         else if(wpid == 0){
 
-            end = clock();
-            double time = (double)(end - start) / CLOCKS_PER_SEC;
-
-            if(!flag){
-                if(time > 5){
-                    while((failed = getFirstFailPid(ret_pid,argc-1)) != -1){
-                        kill((pid_t)failed, SIGTERM); // send SIGTERM to the pid which has no return
-                        printf("i have sent SIGTERM to %d\n",failed);
-                        //printf("i have sent SIGTERM to all child proccess\n");
-                    }
-                    flag = true;
-                }
-            }
-            else{
-                if(time > 10){
-                    kill(0,SIGKILL);
-                    //printf("i have sent SIGKILL to %d\n",pid);
-                    printf("i have sent SIGKILL to all child proccess\n");
-                    break;
-                }
-            }
         }
     }
     return 0;

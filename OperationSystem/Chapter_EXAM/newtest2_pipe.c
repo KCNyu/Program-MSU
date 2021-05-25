@@ -17,8 +17,7 @@
 #include <sys/msg.h>
 #include <unistd.h>
 #include <time.h>
-#include <sys/mman.h>
-
+#include <string.h>
 void fetchPid(int* ret_pid, pid_t ret, const int size){
     for(int i = 0; i < size; i++){
         if(ret_pid[i] == ret){
@@ -40,24 +39,27 @@ int getFirstFailPid(int* ret_pid, const int size){
 int main(int argc, char *argv[])
 {
     int i;
-    int *ret_pid; // save the pid and the reult of pid
+    int fd[2];
+    int ret_pid[argc-1]; // save the pid and the reult of pid
     // 0 means success
     // >0 means pid which has no complete
     // -1 initial number or pid killed by SIGTERM
+    int task = 0;
     clock_t start, end;
     bool flag = false;
     int failed;
 
-    ret_pid = (int*)mmap(NULL,sizeof(int)*(argc-1),PROT_READ|PROT_WRITE,MAP_SHARED|MAP_ANONYMOUS,-1,0);
-    // Create an anonymous mapping area to store the pid
+    pipe(fd);
+    memset(ret_pid,-1,sizeof(ret_pid));
     pid_t pid, wpid;
     // this is child
     for(i = 1; i < argc; i++){
         pid = fork();
         if(pid == 0){
             int child_pid = getpid();
+            write(fd[1],&child_pid,sizeof(int));
+            close(fd[1]); close(fd[0]);
             // close all child proccess read and write of pipe
-            ret_pid[i-1] = child_pid;
             printf("taskname: %8s taskid: %d\n",argv[i],child_pid);
             execlp(argv[i],argv[i],NULL);
             // children proccesses complete
@@ -65,6 +67,18 @@ int main(int argc, char *argv[])
     }
     // this is parent
     start = clock();
+
+    int n;
+    int tmp_pid;
+    close(fd[1]);
+    while((n = read(fd[0],&tmp_pid,sizeof(int))) != 0){
+        ret_pid[task++] = tmp_pid;
+    }
+    // when all proccesses fd[1] (write) have been closed
+    // and don't have any data from pipe
+    // then read from pipe will return 0
+    close(fd[0]);
+    // close pipe read
 
     while((wpid = waitpid(-1,NULL,WNOHANG)) != -1){
         if(wpid > 0){
@@ -79,7 +93,7 @@ int main(int argc, char *argv[])
             if(!flag){
                 if(time > 5){
                     while((failed = getFirstFailPid(ret_pid,argc-1)) != -1){
-                        kill((pid_t)failed, SIGTERM); // send SIGTERM to the pid which has no return
+                        kill(failed, SIGTERM); // send SIGTERM to the pid which has no return
                         printf("i have sent SIGTERM to %d\n",failed);
                         //printf("i have sent SIGTERM to all child proccess\n");
                     }
