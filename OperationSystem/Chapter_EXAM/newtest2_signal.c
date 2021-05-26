@@ -80,14 +80,16 @@ int main(int argc, char *argv[])
     // this is parent
     signal(SIGALRM,SigHandlr);
     alarm(10);
+    // while((wpid = wait(NULL)) != -1)
+    // It is also possible to use wait blockage here, because the execution of
+    // the signal can cause the parent process to run the handle after being captured
     while((wpid = waitpid(-1,NULL,WNOHANG)) != -1){
         if(wpid > 0){
             printf("pid = %d done!\n",wpid);
             fetchPid(ret_pid,wpid,size);
         }
-        else if(wpid == 0){
-
-        }
     }
+    // Here the parent process can only wait
+    // but not do other things after being blocked
     return 0;
 }
