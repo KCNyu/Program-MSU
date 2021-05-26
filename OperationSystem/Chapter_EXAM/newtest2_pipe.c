@@ -18,19 +18,42 @@
 #include <unistd.h>
 #include <time.h>
 #include <string.h>
-void fetchPid(int* ret_pid, pid_t ret, const int size){
+typedef struct {
+    pid_t pid;
+    // save the pid and the reult of pid
+    int status;
+    // 0 means success or success killed by SIGTERM
+    // -1 initial number
+    // 1 have been sent SIGTERM
+} process;
+
+void fetchPid(process* ret_pid, pid_t ret, const int size){
     for(int i = 0; i < size; i++){
-        if(ret_pid[i] == ret){
-            ret_pid[i] = 0;
+        if(ret_pid[i].pid == ret){
+            ret_pid[i].status = 0;
+            return;
         }
     }
 }
-int getFirstFailPid(int* ret_pid, const int size){
+int getFirstFailPid(process* ret_pid, const int size){
     pid_t failed = -1;
     for(int i = 0; i < size; i++){
-        if(ret_pid[i] != 0 && ret_pid[i] != -1){
-            failed = ret_pid[i];
-            ret_pid[i] = -1; // kill by SIGTERM
+        if(ret_pid[i].status != 0 && ret_pid[i].status != 1)
+        {
+            failed = ret_pid[i].pid;
+            ret_pid[i].status = 1;
+            return failed;
+        }
+    }
+    return failed;
+}
+int getKillPid(process* ret_pid, const int size){
+    pid_t failed = -1;
+    for(int i = 0; i < size; i++){
+        if(ret_pid[i].status == 1)
+        {
+            failed = ret_pid[i].pid;
+            ret_pid[i].status = 0;
             return failed;
         }
     }
@@ -40,17 +63,14 @@ int main(int argc, char *argv[])
 {
     int i;
     int fd[2];
-    int ret_pid[argc-1]; // save the pid and the reult of pid
-    // 0 means success
-    // >0 means pid which has no complete
-    // -1 initial number or pid killed by SIGTERM
+    int size = argc-1;
+    process ret_pid[size];
+
     int task = 0;
     clock_t start, end;
     bool flag = false;
-    int failed;
 
     pipe(fd);
-    memset(ret_pid,-1,sizeof(ret_pid));
     pid_t pid, wpid;
     // this is child
     for(i = 1; i < argc; i++){
@@ -62,6 +82,7 @@ int main(int argc, char *argv[])
             // close all child proccess read and write of pipe
             printf("taskname: %8s taskid: %d\n",argv[i],child_pid);
             execlp(argv[i],argv[i],NULL);
+            return 0;
             // children proccesses complete
         }
     }
@@ -72,7 +93,8 @@ int main(int argc, char *argv[])
     int tmp_pid;
     close(fd[1]);
     while((n = read(fd[0],&tmp_pid,sizeof(int))) != 0){
-        ret_pid[task++] = tmp_pid;
+        ret_pid[task].pid = tmp_pid;
+        ret_pid[task++].status = -1;
     }
     // when all proccesses fd[1] (write) have been closed
     // and don't have any data from pipe
@@ -83,29 +105,29 @@ int main(int argc, char *argv[])
     while((wpid = waitpid(-1,NULL,WNOHANG)) != -1){
         if(wpid > 0){
             printf("pid = %d done!\n",wpid);
-            fetchPid(ret_pid,wpid,argc-1);
+            fetchPid(ret_pid,wpid,size);
         }
         else if(wpid == 0){
 
             end = clock();
             double time = (double)(end - start) / CLOCKS_PER_SEC;
+            int target;
 
             if(!flag){
                 if(time > 5){
-                    while((failed = getFirstFailPid(ret_pid,argc-1)) != -1){
-                        kill(failed, SIGTERM); // send SIGTERM to the pid which has no return
-                        printf("i have sent SIGTERM to %d\n",failed);
-                        //printf("i have sent SIGTERM to all child proccess\n");
+                    while((target = getFirstFailPid(ret_pid,size)) != -1){
+                        kill((pid_t)target, SIGTERM); // send SIGTERM to the pid which has no return
+                        printf("i have sent SIGTERM to %d\n",target);
                     }
                     flag = true;
                 }
             }
             else{
                 if(time > 10){
-                    kill(0,SIGKILL);
-                    //printf("i have sent SIGKILL to %d\n",pid);
-                    printf("i have sent SIGKILL to all child proccess\n");
-                    break;
+                    while((target = getKillPid(ret_pid,size)) != -1){
+                        kill((pid_t)target, SIGKILL); // send SIGKILL to the pid which has no return or killed by SIGTERM
+                        printf("i have sent SIGKILL to %d\n",target);
+                    }
                 }
             }
         }
