@@ -44,7 +44,7 @@ void *consumer(void *arg){
     while (1) {
 
         pthread_mutex_lock(&mutex);
-        if(head == nullptr){
+        while(head == nullptr){
             pthread_cond_wait(&has_data, &mutex);
         }
         struct msg *mp;
@@ -53,7 +53,7 @@ void *consumer(void *arg){
         head = mp->next;
 
         pthread_mutex_unlock(&mutex);
-        printf("=======consumer:%d\n", mp->num);
+        printf("=======consumer: %d id: %lu\n",mp->num,pthread_self());
 
         delete(mp);
         sleep(rand()%3);
@@ -73,6 +73,14 @@ int main(int argc, char *argv[])
         cerr << "pthread_create produser error: " << strerror(ret) << endl;
     }
 
+    ret = pthread_create(&cid, nullptr, consumer , nullptr);
+    if(ret != 0){
+        cerr << "pthread_create consumer error: " << strerror(ret) << endl;
+    }
+    ret = pthread_create(&cid, nullptr, consumer , nullptr);
+    if(ret != 0){
+        cerr << "pthread_create consumer error: " << strerror(ret) << endl;
+    }
     ret = pthread_create(&cid, nullptr, consumer , nullptr);
     if(ret != 0){
         cerr << "pthread_create consumer error: " << strerror(ret) << endl;
