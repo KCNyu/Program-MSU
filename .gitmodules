@@ -5,5 +5,5 @@
 	path = ObjectProgram/Matrix
 	url = https://github.com/KCNyu/Matrix
 [submodule "C++_lecture/Linked_list"]
-	path = C++_lecture/Linked_list"
+	path = C++_lecture/Linked_list
 	url = https://github.com/KCNyu/Tree
