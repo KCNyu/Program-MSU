@@ -9,45 +9,39 @@
 #include <unistd.h>
 #include <wait.h>
 #include <string.h>
+#include <signal.h>
+void SigHandlr(int s){
+    //printf("get alarm!\n");
+}
 int main(int argc,char **argv)
 {
     int i;
     int procs;
-    int fd[2];
-    pipe(fd);
+    pid_t pid;
     if(argc<2){
         printf("num procs need\n");
         return 1;
     }
     procs = atoi(argv[1]);
-    char* res[procs];
+    pid_t childPid[procs];
     for(i=0; i<procs; i++){
-        if(fork()==0){
-            dup2(fd[1],STDOUT_FILENO);
-            close(fd[0]);close(fd[1]);
-            //sleep(procs-i);
+        if((pid = fork())==0){
+            signal(SIGALRM,SigHandlr);
+            //printf("i am %d-th and have benn created!\n",i);
+            sleep(100);
             printf("son %d\n",i);
             return 0;
         }
         else{
-            int status;
-            wait(&status);
+            childPid[i] = pid;
+            //printf("i am %dth %d\n",i,pid);
         }
     }
-    for(i=1;i<=procs;i++){
-        if(i <= 10){
-            res[procs-i] =  (char*)calloc(sizeof(char),6);
-            read(fd[0],res[procs-i],6);
-        }
-        else{
-            res[procs-i] =  (char*)calloc(sizeof(char),7);
-            read(fd[0],res[procs-i],7);
-        }
-        wait(NULL);
-    }
-    close(fd[0]);close(fd[1]);
+    sleep(1); // give the time for the child processes have been created
     for(i = 0; i < procs; i++){
-        printf("%s",res[i]);
+        //printf("i am %dth %d\n",procs-i-1,childPid[procs-i-1]);
+        kill(childPid[procs-i-1],SIGALRM);
+        wait(NULL);
     }
     printf("Father!\n");
 
