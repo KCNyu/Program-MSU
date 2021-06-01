@@ -4,11 +4,7 @@
  * Createtime:Mon 31 May 2021 10:34:06 PM CST
  ================================================================*/
 
-#include <iostream>
-#include <unistd.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#include "wrap.h"
 using namespace std;
 
 #define SERV_PORT 9527
@@ -26,14 +22,14 @@ int main(int argc, char *argv[])
     serv_addr.sin_port = htons(SERV_PORT);
     serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
-    lfd = socket(AF_INET, SOCK_STREAM, 0);
+    lfd = Socket(AF_INET, SOCK_STREAM, 0);
     if(lfd == -1){
         cerr << "sorcket error" << endl;
     }
 
     bind(lfd, reinterpret_cast<sockaddr*>(&serv_addr), sizeof(serv_addr));
 
-    listen(lfd, 128);
+    Listen(lfd, 128);
 
     clit_addr_len = sizeof(clit_addr);
     cfd = accept(lfd, reinterpret_cast<sockaddr*>(&clit_addr), &clit_addr_len);
