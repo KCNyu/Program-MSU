@@ -11,9 +11,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <cstring>
+#include <poll.h>
 
 #define SRV_PORT 9999
 #define MAXLINE 8196
+#define OPEN_MAX 1024
 
 using namespace std;
 
@@ -39,10 +41,11 @@ int main(int argc, char *argv[])
 {
 
     int listenfd, connfd;
-    int n;
+    ssize_t n;
     char buf[BUFSIZ], str[INET_ADDRSTRLEN];
 
     struct sockaddr_in srv_addr, clt_addr;
+    struct pollfd client[OPEN_MAX];
 
     bzero(&srv_addr, sizeof(srv_addr));
 
@@ -57,65 +60,68 @@ int main(int argc, char *argv[])
 
     listen(listenfd, 128);
 
+
     cout << "Accepting client connect ..." << endl;
 
-    fd_set rset, allset;
 
     int maxfd = listenfd;
-    int maxi = -1, tmp_index;
-    int nready, client[FD_SETSIZE];
+    int nready;
 
-    FD_ZERO(&allset);
-    FD_SET(listenfd, &allset);
+    client[0].fd = listenfd;
+    client[0].events = POLLIN;
 
-    for(int i = 0; i < FD_SETSIZE; i++){
-        client[i] = -1;
+    for(int i = 1; i < OPEN_MAX; i++){
+        client[i].fd = -1;
     }
 
+    int maxi = 0, tmp_index;
+
+
     while(1){
-        rset = allset;
-        nready = select(maxfd+1, &rset, nullptr, nullptr, nullptr);
+        nready = poll(client, maxi+1, -1);
         if(nready < 0){
             cerr << "select error" << endl;
             exit(1);
         }
-        if(FD_ISSET(listenfd, &rset)){
+        if(client[0].revents & POLLIN){
             socklen_t clt_addr_len = sizeof(clt_addr);
             connfd = Accept(listenfd, reinterpret_cast<sockaddr*>(&clt_addr), &clt_addr_len);
             printf("received from %s at PORT %d\n",
                     inet_ntop(AF_INET, &clt_addr.sin_addr, str, sizeof(str)),
                     ntohs(clt_addr.sin_port));
-            for(int i = 0; i < FD_SETSIZE; i++){
-                if(client[i] < 0){
-                    client[i] = connfd;
+            for(int i = 1; i < OPEN_MAX; i++){
+                if(client[i].fd < 0){
+                    client[i].fd = connfd;
+                    client[i].events = POLLIN;
                     tmp_index = i;
                     break;
                 }
             }
-
-            FD_SET(connfd, &allset);
-
-            if(maxfd < connfd){
-                maxfd = connfd;
-            }
             if(maxi < tmp_index){
                 maxi = tmp_index;
             }
-
             if(nready == 1){
                 continue;
             }
         }
-        for(int i = 0; i <= maxi; i++){
+        for(int i = 1; i <= maxi; i++){
             int sockfd;
-            if((sockfd = client[i]) < 0){
+            if((sockfd = client[i].fd) < 0){
                 continue;
             }
-            if(FD_ISSET(sockfd, &rset)){
+            if(client[i].revents & POLLIN){
                 if((n = read(sockfd, buf, sizeof(buf))) == 0){
+                    printf("client[%d] closed connection\n", i);
                     close(sockfd);
-                    FD_CLR(sockfd, &allset);
-                    client[i] = -1;
+                    client[i].fd = -1;
+                }
+                else if(n < 0){
+                    if(errno == ECONNRESET){
+                        printf("client[%d] aborted connection\n", i);
+                        close(sockfd);
+                        client[i].fd = -1;
+                    }
+
                 }
                 else if(n > 0){
                     for(int j = 0; j < n; j++){
