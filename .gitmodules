@@ -1,9 +1,9 @@
-[submodule "ObjectProgram/SimpleDataBase"]
-	path = ObjectProgram/SimpleDataBase
-	url = https://github.com/KCNyu/SimpleDataBase.git
+[submodule "SimpleDataBase"]
+    path = C++_CLASS_TEST/SimpleDataBase
+    url = https://github.com/KCNyu/SimpleDataBase.git
 [submodule "Matrix"]
-	path = ObjectProgram/Matrix
-	url = https://github.com/KCNyu/Matrix
-[submodule "C++_lecture/Linked_list"]
-	path = C++_lecture/Linked_list
-	url = https://github.com/KCNyu/Tree
+    path = C++_CLASS_TEST/Matrix
+    url = https://github.com/KCNyu/Matrix
+[submodule "Linked_list"]
+    path = C++_LECTURE/Linked_list
+    url = https://github.com/KCNyu/Tree
