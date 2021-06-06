@@ -64,7 +64,6 @@ int main(int argc, char *argv[])
     cout << "Accepting client connect ..." << endl;
 
 
-    int maxfd = listenfd;
     int nready;
 
     client[0].fd = listenfd;
