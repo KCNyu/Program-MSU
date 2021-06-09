@@ -85,7 +85,7 @@ void print_results(const char* const tag,
     const Supernumber& N,
     high_resolution_clock::time_point startTime,
     high_resolution_clock::time_point endTime) {
-    //cout << "result: " << N;  
+    //cout << "result: " << N;
     printf("%s: Len: %d Time: %fms\n",
         tag,
         N.Getlen(),

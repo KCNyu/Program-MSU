@@ -75,6 +75,17 @@ Supernumber Factorial(int N) {
     }
     return result;
 }
+Supernumber Exponent(const Supernumber& N, int X){
+    Supernumber result("1");
+    if(X == 0){
+        return result;
+    }
+    if(X == 1) return N;
+    result = Exponent(N,X >> 1);
+    result = result * result;
+    if((X & 0x01) == 1) result = result * N;
+    return result;
+}
 void print_results(const Supernumber &N,
         high_resolution_clock::time_point startTime,
         high_resolution_clock::time_point endTime) {
@@ -87,10 +98,12 @@ int main(int argc, char *argv[]) {
 
     Supernumber N1("2");
 
+    /*
     const auto startTime = high_resolution_clock::now();
     Supernumber N2 = Factorial(1000);
     const auto endTime = high_resolution_clock::now();
     print_results(N2, startTime, endTime);
-
+    */
+    cout << Exponent(N1,16);
     return 0;
 }
