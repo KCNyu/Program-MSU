@@ -166,7 +166,6 @@ void Matrix_LU::DecompLU() {
         exit(0);
     }
     int n = row;
-    /*
     for (int i = 0; i < n; i++){
         l_data[i][i] = 1;
         p_data.push_back(i);
@@ -177,7 +176,7 @@ void Matrix_LU::DecompLU() {
         for(int m = j+1; m < n; m++){
             if(max_elem < fabs(data[m][j])){
                 max_elem = data[m][j];
-                max_j = j;
+                max_j = m;
             }
         }
         cout << "j = " << j << endl;
@@ -203,8 +202,8 @@ void Matrix_LU::DecompLU() {
         }
     }
     // l diag = 1;
-    */
 
+    /*
     for (int i = 0; i < n; i++) { // 第一步，计算L的第一列和U的第一行：U1i=A1i,Li1=Ai1/U11
         u_data[0][i] = data[0][i];
         l_data[i][0] = data[i][0] / u_data[0][0];
@@ -228,9 +227,10 @@ void Matrix_LU::DecompLU() {
             }
         }
     }
+    */
 }
 int main() {
-    Matrix_LU t("Amat1_temp.m");
+    Matrix_LU t("Amat1.m");
     t.DecompLU();
     t.PrintData();
     t.WriteFile();
