@@ -95,37 +95,51 @@ template <> Matrix_LU<complex<double>>::Matrix_LU(const char *filename) {
     }
 
     string temp;
-    complex<double> c_temp;
     vector<complex<double>> row_data;
 
     while (matrix >> temp) {
+
         char back = temp.back();
         ssize_t pos_left = temp.find('[');
         ssize_t pos_right = temp.find(']');
+
         if(pos_right != string::npos){
-            c_temp.imag(atof(temp.substr(0,pos_right).c_str()));
-            cout << c_temp << endl;
-            row_data.push_back(c_temp);
-            data.emplace_back(row_data);
-            row_data.clear();
-            if(pos_left != string::npos){
-                c_temp.real(atof(temp.substr(pos_left+1).c_str()));
-                matrix >> temp;
-                temp.pop_back();
-                c_temp.imag(atof(temp.c_str()));
-                row_data.push_back(c_temp);
+            if(temp[pos_right+1] == ','){
+                row_data.push_back(atof(temp.substr(0,pos_right).c_str()));
+                data.emplace_back(row_data);
+                row_data.clear();
+                if(pos_left != string::npos){
+                    int cow_index = 0;
+                    int col_index = 0;
+                    data[cow_index][col_index++].imag(atof(temp.substr(pos_left+1).c_str()));
+                    while (matrix >> temp){
+                        if(isdigit(temp.back())){
+                            data[cow_index][col_index++].imag(atof(temp.c_str()));
+                        }
+                        else if(temp.back() == ';'){
+                            temp.pop_back();
+                            if(temp.back() == ')'){
+                                pos_right = temp.find(']');
+                                data[cow_index][col_index++].imag(atof(temp.substr(0,pos_right).c_str()));
+                                continue;
+                            }
+                            data[cow_index++][col_index].imag(atof(temp.c_str()));
+                            col_index = 0;
+                        }
+                    }
+                }
             }
         }
         else if(pos_left != string::npos){
-            c_temp.real(atof(temp.substr(pos_left+1).c_str()));
-
-            matrix >> temp;
-            temp.pop_back();
-            c_temp.imag(atof(temp.c_str()));
-            row_data.push_back(c_temp);
+            row_data.push_back(atof(temp.substr(pos_left+1).c_str()));
         }
-        else if(isdigit(back)){
-            c_temp.real(atof(temp.c_str()));
+        else if(back == ';'){
+            temp.pop_back();
+            row_data.push_back(atof(temp.c_str()));
+            data.emplace_back(row_data);
+            row_data.clear();
+            matrix >> temp;
+            row_data.push_back(atof(temp.c_str()));
         }
     }
 
@@ -243,52 +257,7 @@ template <typename T> void Matrix_LU<T>::DecompLU() {
         // save the max index
         for (int j = i + 1; j < n; j++) {
             if (max_elem < fabs(u_data[j][i])) {
-                max_elem = u_data[j][i];
-                max_i = j;
-            }
-        }
-        // find max in every row at lower triangle
-
-        swap(u_data[i], u_data[max_i]);
-        swap(p_data[i], p_data[max_i]);
-        // swap the row
-
-        for (int j = i + 1; j < n; j++) {
-            if (fabs(u_data[i][i]) < eps) {
-                cerr << "The matrix is not strict regular!" << endl;
-                exit(1);
-            }
-            l_data[j][i] = u_data[j][i] / u_data[i][i];
-            for (int k = i; k < n; k++) {
-                u_data[j][k] -= l_data[j][i] * u_data[i][k];
-            }
-        }
-    }
-}
-template <> void Matrix_LU<complex<double>>::DecompLU() {
-    if (row != col) {
-        cerr << "Is not a square Matrix!" << endl;
-        exit(1);
-    }
-    int n = row;
-
-    for (int i = 0; i < n; i++) {
-        l_data[i][i] = 1;
-        p_data.push_back(i);
-    }
-    // init L matrix diag and P matrix P[i] that's where 1 is
-
-    u_data.assign(data.begin(), data.end());
-
-    // i -- the index of row
-    for (int i = 0; i < n - 1; i++) {
-        double max_elem = fabs(u_data[i][i]);
-        // find max elem for each man elem in diag
-        int max_i = i;
-        // save the max index
-        for (int j = i + 1; j < n; j++) {
-            if (max_elem < abs(u_data[j][i])) {
-                max_elem = abs(u_data[j][i]);
+                max_elem = fabs(u_data[j][i]);
                 max_i = j;
             }
         }
@@ -329,6 +298,7 @@ void make_lu(const char *filename) {
     Matrix_LU<complex<double>> m(filename);
     m.DecompLU();
     m.PrintData();
+    //m.WriteFile();
 #endif
     const auto end_time = high_resolution_clock::now();
     PrintTime(start_time, end_time);

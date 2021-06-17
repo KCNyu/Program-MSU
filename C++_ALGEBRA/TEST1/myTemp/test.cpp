@@ -5,10 +5,18 @@
 ================================================================*/
 
 #include <iostream>
+#include <complex>
+#include <vector>
 using namespace std;
 
 int main()
 {
-    string s = "2],[4";
-    cout << s.find(']') << endl;
+    vector<complex<double>> v;
+    complex<double> c(1,2);
+    cout << c << endl;
+    v.emplace_back(move(c));
+    cout << c << endl;
+    c.real(3);
+    cout << c << endl;
+    cout << v[0] << endl;
 }
