@@ -39,11 +39,11 @@ template <typename T> class Matrix_LU {
         void DecompLU();
         void DecompLUP();
         bool DetectLU();
-        void ReadBvec(const char* filename);
-        void ReadBvecPlus(const char* filename);
-        void SolveSystem(const char* filename);
+        void ReadBvec(const char *filename);
+        void ReadBvecPlus(const char *filename);
+        void SolveSystem(const char *filename);
 };
-template <typename T> void Matrix_LU<T>::InitData(){
+template <typename T> void Matrix_LU<T>::InitData() {
     row = data.size();
     for (auto &r : data) {
         if (r.size() != row) {
@@ -111,24 +111,25 @@ template <> Matrix_LU<complex<double>>::Matrix_LU(const char *filename) {
         ssize_t pos_left = temp.find('[');
         ssize_t pos_right = temp.find(']');
 
-        if(pos_right != string::npos){
-            if(temp[pos_right+1] == ','){
-                row_data.push_back(atof(temp.substr(0,pos_right).c_str()));
+        if (pos_right != string::npos) {
+            if (temp[pos_right + 1] == ',') {
+                row_data.push_back(atof(temp.substr(0, pos_right).c_str()));
                 data.emplace_back(row_data);
                 row_data.clear();
-                if(pos_left != string::npos){
+                if (pos_left != string::npos) {
                     int cow_index = 0;
                     int col_index = 0;
-                    data[cow_index][col_index++].imag(atof(temp.substr(pos_left+1).c_str()));
-                    while (matrix >> temp){
-                        if(isdigit(temp.back())){
+                    data[cow_index][col_index++].imag(
+                            atof(temp.substr(pos_left + 1).c_str()));
+                    while (matrix >> temp) {
+                        if (isdigit(temp.back())) {
                             data[cow_index][col_index++].imag(atof(temp.c_str()));
-                        }
-                        else if(temp.back() == ';'){
+                        } else if (temp.back() == ';') {
                             temp.pop_back();
-                            if(temp.back() == ')'){
+                            if (temp.back() == ')') {
                                 pos_right = temp.find(']');
-                                data[cow_index][col_index++].imag(atof(temp.substr(0,pos_right).c_str()));
+                                data[cow_index][col_index++].imag(
+                                        atof(temp.substr(0, pos_right).c_str()));
                                 continue;
                             }
                             data[cow_index++][col_index].imag(atof(temp.c_str()));
@@ -137,11 +138,9 @@ template <> Matrix_LU<complex<double>>::Matrix_LU(const char *filename) {
                     }
                 }
             }
-        }
-        else if(pos_left != string::npos){
-            row_data.push_back(atof(temp.substr(pos_left+1).c_str()));
-        }
-        else if(back == ';'){
+        } else if (pos_left != string::npos) {
+            row_data.push_back(atof(temp.substr(pos_left + 1).c_str()));
+        } else if (back == ';') {
             temp.pop_back();
             row_data.push_back(atof(temp.c_str()));
             data.emplace_back(row_data);
@@ -154,14 +153,14 @@ template <> Matrix_LU<complex<double>>::Matrix_LU(const char *filename) {
     InitData();
     matrix.close();
 }
-template <typename T> void Matrix_LU<T>::ReadBvec(const char* filename) {
+template <typename T> void Matrix_LU<T>::ReadBvec(const char *filename) {
     string temp;
     ifstream vec(filename);
     if (!vec.is_open()) {
         cerr << "open failed" << endl;
         exit(1);
     }
-    while(vec >> temp){
+    while (vec >> temp) {
         char front = temp.front();
         char back = temp.back();
         if (front == '[') {
@@ -177,14 +176,14 @@ template <typename T> void Matrix_LU<T>::ReadBvec(const char* filename) {
         }
     }
 }
-template <typename T> void Matrix_LU<T>::ReadBvecPlus(const char* filename) {
+template <typename T> void Matrix_LU<T>::ReadBvecPlus(const char *filename) {
     string temp;
     ifstream vec(filename);
     if (!vec.is_open()) {
         cerr << "open failed" << endl;
         exit(1);
     }
-    while(vec >> temp){
+    while (vec >> temp) {
         char front = temp.front();
         char back = temp.back();
         if (front == '[') {
@@ -200,9 +199,9 @@ template <typename T> void Matrix_LU<T>::ReadBvecPlus(const char* filename) {
         ssize_t pos = temp.find(';');
         ssize_t size = temp.size();
         temp += ";";
-        while(pos != string::npos){
-            b_data.push_back(atof(temp.substr(0,pos).c_str()));
-            temp = temp.substr(pos+1, size);
+        while (pos != string::npos) {
+            b_data.push_back(atof(temp.substr(0, pos).c_str()));
+            temp = temp.substr(pos + 1, size);
             pos = temp.find(';');
         }
     }
@@ -241,17 +240,17 @@ template <typename T> void Matrix_LU<T>::PrintData() {
         cout << endl;
     }
     cout << "============B-VECTOR============" << endl;
-    for (auto &elem : b_data){
+    for (auto &elem : b_data) {
         cout.width(5);
         cout << elem << endl;
     }
     cout << "============X-VECTOR============" << endl;
-    for (auto &elem : x_data){
+    for (auto &elem : x_data) {
         cout.width(5);
         cout << elem << endl;
     }
     cout << "============Y-VECTOR============" << endl;
-    for (auto &elem : y_data){
+    for (auto &elem : y_data) {
         cout.width(5);
         cout << elem << endl;
     }
@@ -262,7 +261,7 @@ template <typename T> void Matrix_LU<T>::WriteFile(string name, string index) {
     string suffix = ";\n   ";
     int n = row, i, j;
     if (name == "L") {
-        string filename = name+"mat"+index+".m";
+        string filename = name + "mat" + index + ".m";
         mat.open(filename, ios::out);
         mat << prefix;
         for (i = 0; i < n; i++) {
@@ -277,7 +276,7 @@ template <typename T> void Matrix_LU<T>::WriteFile(string name, string index) {
             }
         }
     } else if (name == "U") {
-        string filename = name+"mat"+index+".m";
+        string filename = name + "mat" + index + ".m";
         mat.open(filename, ios::out);
         mat << prefix;
         for (i = 0; i < n; i++) {
@@ -292,7 +291,7 @@ template <typename T> void Matrix_LU<T>::WriteFile(string name, string index) {
             }
         }
     } else if (name == "P") {
-        string filename = name+"mat"+index+".m";
+        string filename = name + "mat" + index + ".m";
         mat.open(filename, ios::out);
         mat << prefix;
         for (i = 0; i < n; i++) {
@@ -307,21 +306,22 @@ template <typename T> void Matrix_LU<T>::WriteFile(string name, string index) {
             }
         }
     } else if (name == "X") {
-        string filename = name+"vec"+index+".m";
+        string filename = name + "vec" + index + ".m";
         mat.open(filename, ios::out);
         mat << "x = [";
-        for (i = 0; i < n-1; i++) {
+        for (i = 0; i < n - 1; i++) {
             mat << x_data[i] << "; ";
         }
         mat << x_data[i] << "];";
     }
 }
-template <> void Matrix_LU<complex<double>>::WriteFile(string name, string index) {
+template <>
+void Matrix_LU<complex<double>>::WriteFile(string name, string index) {
     ofstream mat;
     string prefix = name + " = complex([";
     string suffix = "]);";
     int n = row, i, j;
-    string filename = name+"mat"+index+".m";
+    string filename = name + "mat" + index + ".m";
     mat.open(filename, ios::out);
     if (name == "L") {
         mat << prefix;
@@ -329,10 +329,9 @@ template <> void Matrix_LU<complex<double>>::WriteFile(string name, string index
             for (j = 0; j < n - 1; j++) {
                 mat << l_data[i][j].real() << " ";
             }
-            if(i < n - 1){
+            if (i < n - 1) {
                 mat << l_data[i][j].real() << ";\n   ";
-            }
-            else{
+            } else {
                 mat << l_data[i][j].real();
             }
         }
@@ -341,10 +340,9 @@ template <> void Matrix_LU<complex<double>>::WriteFile(string name, string index
             for (j = 0; j < n - 1; j++) {
                 mat << l_data[i][j].imag() << " ";
             }
-            if(i < n - 1){
+            if (i < n - 1) {
                 mat << l_data[i][j].imag() << ";\n   ";
-            }
-            else{
+            } else {
                 mat << l_data[i][j].imag();
             }
         }
@@ -355,10 +353,9 @@ template <> void Matrix_LU<complex<double>>::WriteFile(string name, string index
             for (j = 0; j < n - 1; j++) {
                 mat << u_data[i][j].real() << " ";
             }
-            if(i < n - 1){
+            if (i < n - 1) {
                 mat << u_data[i][j].real() << ";\n   ";
-            }
-            else{
+            } else {
                 mat << u_data[i][j].real();
             }
         }
@@ -367,10 +364,9 @@ template <> void Matrix_LU<complex<double>>::WriteFile(string name, string index
             for (j = 0; j < n - 1; j++) {
                 mat << u_data[i][j].imag() << " ";
             }
-            if(i < n - 1){
+            if (i < n - 1) {
                 mat << u_data[i][j].imag() << ";\n   ";
-            }
-            else{
+            } else {
                 mat << u_data[i][j].imag();
             }
         }
@@ -393,13 +389,12 @@ template <> void Matrix_LU<complex<double>>::WriteFile(string name, string index
     }
 }
 template <typename T> void Matrix_LU<T>::WriteFile(string index) {
-    WriteFile("L",index);
-    WriteFile("U",index);
-    if(atoi(index.c_str()) <= 2){
-        WriteFile("P",index);
-    }
-    else{
-        WriteFile("X",index);
+    WriteFile("L", index);
+    WriteFile("U", index);
+    if (atoi(index.c_str()) <= 2) {
+        WriteFile("P", index);
+    } else {
+        WriteFile("X", index);
     }
 }
 template <typename T> void Matrix_LU<T>::DecompLU() {
@@ -475,12 +470,11 @@ template <typename T> void Matrix_LU<T>::DecompLUP() {
         }
     }
 }
-template<typename T> void Matrix_LU<T>::SolveSystem(const char* filename){
+template <typename T> void Matrix_LU<T>::SolveSystem(const char *filename) {
 
-    if(filename[4] == '4'){
+    if (filename[4] == '4') {
         ReadBvecPlus(filename);
-    }
-    else{
+    } else {
         ReadBvec(filename);
     }
 
@@ -490,19 +484,19 @@ template<typename T> void Matrix_LU<T>::SolveSystem(const char* filename){
     x_data.resize(n);
     y_data.resize(n);
 
-    for(int i = 0; i < n; i++){
+    for (int i = 0; i < n; i++) {
         sum = 0;
-        for(int j = 0; j < i; j++){
+        for (int j = 0; j < i; j++) {
             sum += l_data[i][j] * y_data[j];
         }
         y_data[i] = b_data[i] - sum;
     }
-    for(int i = n-1; i >= 0; i--){
+    for (int i = n - 1; i >= 0; i--) {
         sum = 0;
-        for(int j = i + 1; j < n; j++){
+        for (int j = i + 1; j < n; j++) {
             sum += u_data[i][j] * x_data[j];
         }
-        x_data[i] = (y_data[i]-sum)/u_data[i][i];
+        x_data[i] = (y_data[i] - sum) / u_data[i][i];
     }
 }
 void PrintTime(high_resolution_clock::time_point start_time,
@@ -514,23 +508,20 @@ void PrintTime(high_resolution_clock::time_point start_time,
 void make_lu(const char *filename) {
     const auto start_time = high_resolution_clock::now();
     char index = filename[4];
-    if(index == '1'){
+    if (index == '1') {
         Matrix_LU<double> m(filename);
         m.DecompLUP();
         m.WriteFile("1");
-    }
-    else if(index == '2'){
+    } else if (index == '2') {
         Matrix_LU<complex<double>> m(filename);
         m.DecompLUP();
         m.WriteFile("2");
-    }
-    else if(index == '3'){
+    } else if (index == '3') {
         Matrix_LU<double> m(filename);
         m.DecompLU();
         m.SolveSystem("bvec3.m");
         m.WriteFile("3");
-    }
-    else if(index == '4'){
+    } else if (index == '4') {
         Matrix_LU<double> m(filename);
         m.DecompLU();
         m.SolveSystem("bvec4.m");
