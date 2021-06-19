@@ -6,10 +6,9 @@
 
 #include "web_server.h"
 
-using namespace std;
-
 int main()
 {
+    chdir("/root/Program");
     WebServer serv(9999);
     serv.RunServer();
     return 0;
