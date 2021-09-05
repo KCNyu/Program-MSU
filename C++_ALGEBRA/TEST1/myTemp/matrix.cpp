@@ -23,7 +23,7 @@ template <typename T> class Matrix_LU {
         vector<vector<T>> data;
         vector<vector<T>> l_data;
         vector<vector<T>> u_data;
-        vector<int> p_data;
+        vector<vector<int>> p_data;
         vector<T> b_data;
         vector<T> x_data;
         vector<T> y_data;
@@ -36,34 +36,13 @@ template <typename T> class Matrix_LU {
         void PrintData();
         void WriteFile(string name, string index);
         void WriteFile(string index);
-        void DecompLU();
-        void DecompLUP();
-        bool DetectLU();
+        void DecompLU(string index);
+        void DecompLUP(string index);
         void ReadBvec(const char *filename);
         void ReadBvecPlus(const char *filename);
         void SolveSystem(const char *filename);
 };
-template <typename T> void Matrix_LU<T>::InitData() {
-    row = data.size();
-    for (auto &r : data) {
-        if (r.size() != row) {
-            cerr << "row != col failed" << endl;
-            exit(1);
-        }
-    }
-    col = data.back().size();
-
-    l_data.resize(row);
-    u_data.resize(row);
-    for (auto &r : l_data) {
-        r.resize(col);
-    }
-    for (auto &c : u_data) {
-        c.resize(col);
-    }
-}
-template <typename T> Matrix_LU<T>::Matrix_LU(const char *filename) {
-
+template <typename T> void ReadFile(const char *filename, vector<vector<T>>& data){
     ifstream matrix(filename);
     if (!matrix.is_open()) {
         cerr << "open failed" << endl;
@@ -91,11 +70,9 @@ template <typename T> Matrix_LU<T>::Matrix_LU(const char *filename) {
             row_data.clear();
         }
     }
-
-    InitData();
     matrix.close();
 }
-template <> Matrix_LU<complex<double>>::Matrix_LU(const char *filename) {
+template <> void ReadFile(const char *filename, vector<vector<complex<double>>>& data){
     ifstream matrix(filename);
     if (!matrix.is_open()) {
         cerr << "open failed" << endl;
@@ -149,9 +126,22 @@ template <> Matrix_LU<complex<double>>::Matrix_LU(const char *filename) {
             row_data.push_back(atof(temp.c_str()));
         }
     }
-
-    InitData();
     matrix.close();
+}
+template <typename T> void Matrix_LU<T>::InitData() {
+    row = data.size();
+    for (auto &r : data) {
+        if (r.size() != row) {
+            cerr << "row != col failed" << endl;
+            exit(1);
+        }
+    }
+    col = data.back().size();
+
+}
+template <typename T> Matrix_LU<T>::Matrix_LU(const char *filename) {
+    ReadFile(filename,data);
+    InitData();
 }
 template <typename T> void Matrix_LU<T>::ReadBvec(const char *filename) {
     string temp;
@@ -235,7 +225,7 @@ template <typename T> void Matrix_LU<T>::PrintData() {
     for (int i = 0; i < row; i++) {
         for (int j = 0; j < col; j++) {
             cout.width(5);
-            cout << (j == p_data[i] ? 1 : 0) << " ";
+            cout << p_data[i][j] << " ";
         }
         cout << endl;
     }
@@ -260,30 +250,21 @@ template <typename T> void Matrix_LU<T>::WriteFile(string name, string index) {
     string prefix = name + " = ...\n  [";
     string suffix = ";\n   ";
     int n = row, i, j;
-    if (name == "L") {
-        string filename = name + "mat" + index + ".m";
-        mat.open(filename, ios::out);
-        mat << prefix;
-        for (i = 0; i < n; i++) {
-            for (j = 0; j < n - 1; j++) {
-                mat << l_data[i][j] << " ";
-            }
-            mat << l_data[i][j];
-            if (i < n - 1) {
-                mat << suffix;
-            } else {
-                mat << "];";
-            }
+    if (name == "L" || name == "U") {
+        vector<vector<T>>* res;
+        if(name == "L"){
+            res = &l_data;
+        } else if(name == "U"){
+            res = &u_data;
         }
-    } else if (name == "U") {
         string filename = name + "mat" + index + ".m";
         mat.open(filename, ios::out);
         mat << prefix;
         for (i = 0; i < n; i++) {
             for (j = 0; j < n - 1; j++) {
-                mat << u_data[i][j] << " ";
+                mat << (*res)[i][j] << " ";
             }
-            mat << u_data[i][j];
+            mat << (*res)[i][j];
             if (i < n - 1) {
                 mat << suffix;
             } else {
@@ -296,9 +277,9 @@ template <typename T> void Matrix_LU<T>::WriteFile(string name, string index) {
         mat << prefix;
         for (i = 0; i < n; i++) {
             for (j = 0; j < n - 1; j++) {
-                mat << (j == p_data[i] ? 1 : 0) << " ";
+                mat << p_data[i][j] << " ";
             }
-            mat << (j == p_data[i] ? 1 : 0);
+            mat << p_data[i][j];
             if (i < n - 1) {
                 mat << suffix;
             } else {
@@ -323,51 +304,33 @@ void Matrix_LU<complex<double>>::WriteFile(string name, string index) {
     int n = row, i, j;
     string filename = name + "mat" + index + ".m";
     mat.open(filename, ios::out);
-    if (name == "L") {
+    if (name == "L" || name == "U") {
+        vector<vector<complex<double>>>* res;
+        if(name == "L"){
+            res = &l_data;
+        } else if(name == "U"){
+            res = &u_data;
+        }
         mat << prefix;
         for (i = 0; i < n; i++) {
             for (j = 0; j < n - 1; j++) {
-                mat << l_data[i][j].real() << " ";
+                mat << (*res)[i][j].real() << " ";
             }
             if (i < n - 1) {
-                mat << l_data[i][j].real() << ";\n   ";
+                mat << (*res)[i][j].real() << ";\n   ";
             } else {
-                mat << l_data[i][j].real();
+                mat << (*res)[i][j].real();
             }
         }
         mat << "],[";
         for (i = 0; i < n; i++) {
             for (j = 0; j < n - 1; j++) {
-                mat << l_data[i][j].imag() << " ";
+                mat << (*res)[i][j].imag() << " ";
             }
             if (i < n - 1) {
-                mat << l_data[i][j].imag() << ";\n   ";
+                mat << (*res)[i][j].imag() << ";\n   ";
             } else {
-                mat << l_data[i][j].imag();
-            }
-        }
-        mat << suffix;
-    } else if (name == "U") {
-        mat << prefix;
-        for (i = 0; i < n; i++) {
-            for (j = 0; j < n - 1; j++) {
-                mat << u_data[i][j].real() << " ";
-            }
-            if (i < n - 1) {
-                mat << u_data[i][j].real() << ";\n   ";
-            } else {
-                mat << u_data[i][j].real();
-            }
-        }
-        mat << "],[";
-        for (i = 0; i < n; i++) {
-            for (j = 0; j < n - 1; j++) {
-                mat << u_data[i][j].imag() << " ";
-            }
-            if (i < n - 1) {
-                mat << u_data[i][j].imag() << ";\n   ";
-            } else {
-                mat << u_data[i][j].imag();
+                mat << (*res)[i][j].imag();
             }
         }
         mat << suffix;
@@ -377,9 +340,9 @@ void Matrix_LU<complex<double>>::WriteFile(string name, string index) {
         mat << prefix;
         for (i = 0; i < n; i++) {
             for (j = 0; j < n - 1; j++) {
-                mat << (j == p_data[i] ? 1 : 0) << " ";
+                mat << p_data[i][j] << " ";
             }
-            mat << (j == p_data[i] ? 1 : 0);
+            mat << p_data[i][j];
             if (i < n - 1) {
                 mat << suffix;
             } else {
@@ -391,16 +354,34 @@ void Matrix_LU<complex<double>>::WriteFile(string name, string index) {
 template <typename T> void Matrix_LU<T>::WriteFile(string index) {
     WriteFile("L", index);
     WriteFile("U", index);
-    if (atoi(index.c_str()) <= 2) {
-        WriteFile("P", index);
-    } else {
+    if (atoi(index.c_str()) > 2) {
         WriteFile("X", index);
     }
+    else{
+        WriteFile("P", index);
+    }
 }
-template <typename T> void Matrix_LU<T>::DecompLU() {
+template <typename T> void Matrix_LU<T>::DecompLU(string index) {
+    string Lmat = static_cast<string>("Lmat")+index+".m";
+    string Umat = static_cast<string>("Umat")+index+".m";
+    fstream Lmatrix(Lmat), Umatrix(Umat);
+    if(Lmatrix.is_open() && Umatrix.is_open()){
+        ReadFile(Lmat.c_str(),l_data);
+        ReadFile(Umat.c_str(),u_data);
+        return;
+        // get L U matrix from files
+    }
     if (row != col) {
         cerr << "Is not a square Matrix!" << endl;
         exit(1);
+    }
+    l_data.resize(row);
+    u_data.resize(row);
+    for (auto &r : l_data) {
+        r.resize(col);
+    }
+    for (auto &c : u_data) {
+        c.resize(col);
     }
     int n = row;
 
@@ -425,16 +406,41 @@ template <typename T> void Matrix_LU<T>::DecompLU() {
         }
     }
 }
-template <typename T> void Matrix_LU<T>::DecompLUP() {
+template <typename T> void Matrix_LU<T>::DecompLUP(string index) {
+    string Lmat = static_cast<string>("Lmat")+index+".m";
+    string Umat = static_cast<string>("Umat")+index+".m";
+    string Pmat = static_cast<string>("Pmat")+index+".m";
+    fstream Lmatrix(Lmat), Qmatrix(Umat), Pmatrix(Pmat);
+    if(Lmatrix.is_open() && Qmatrix.is_open() && Pmatrix.is_open()){
+        ReadFile(Lmat.c_str(),l_data);
+        ReadFile(Umat.c_str(),u_data);
+        ReadFile(Pmat.c_str(),p_data);
+        return;
+        // get L U P matrix from files
+    }
     if (row != col) {
         cerr << "Is not a square Matrix!" << endl;
         exit(1);
     }
+
+    l_data.resize(row);
+    u_data.resize(row);
+    p_data.resize(row);
+    for (auto &r : l_data) {
+        r.resize(col);
+    }
+    for (auto &c : u_data) {
+        c.resize(col);
+    }
+    for (auto &p : p_data) {
+        p.resize(col);
+    }
+
     int n = row;
 
     for (int i = 0; i < n; i++) {
         l_data[i][i] = 1;
-        p_data.push_back(i);
+        p_data[i][i] = 1;
     }
     // init L matrix diag and P matrix P[i] that's where 1 is
 
@@ -507,23 +513,24 @@ void PrintTime(high_resolution_clock::time_point start_time,
 }
 void make_lu(const char *filename) {
     const auto start_time = high_resolution_clock::now();
-    char index = filename[4];
-    if (index == '1') {
+    string index = to_string(filename[4]-'0');
+    cout << index << endl;
+    if (index == "1") {
         Matrix_LU<double> m(filename);
-        m.DecompLUP();
+        m.DecompLUP(index);
         m.WriteFile("1");
-    } else if (index == '2') {
+    } else if (index == "2") {
         Matrix_LU<complex<double>> m(filename);
-        m.DecompLUP();
+        m.DecompLUP(index);
         m.WriteFile("2");
-    } else if (index == '3') {
+    } else if (index == "3") {
         Matrix_LU<double> m(filename);
-        m.DecompLU();
+        m.DecompLU(index);
         m.SolveSystem("bvec3.m");
         m.WriteFile("3");
-    } else if (index == '4') {
+    } else if (index == "4") {
         Matrix_LU<double> m(filename);
-        m.DecompLU();
+        m.DecompLU(index);
         m.SolveSystem("bvec4.m");
         m.WriteFile("4");
     }
