@@ -12,9 +12,6 @@ void SigHandlr(int s){
 }
 int main(int argc, char *argv[])
 {
-    signal(SIGALRM,SigHandlr);
-    alarm(1);
-    sleep(10);
-    printf("hello\n");
+    execlp("grep","grep","-r","-n","exec",NULL);
     return 0;
 }
