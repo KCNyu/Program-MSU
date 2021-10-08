@@ -47,9 +47,9 @@ private:
     double bound;
     TaskTree *leftTaskTree;
     TaskTree *rightTaskTree;
+    size_t index_row, index_col;
 
 public:
-    size_t index_row, index_col;
     TaskTree(const mat_d &m, const double b = 0);
     void PrintMat();
     void ReduceMinElem();
@@ -149,7 +149,7 @@ void TaskTree::SetBranch()
                         min_col = mat[k][j];
                 }
                 double max_sum_tmp = min_row + min_col;
-                if (max_sum_tmp > max_sum)
+                if (max_sum_tmp >= max_sum)
                 {
                     index_row = i;
                     index_col = j;
@@ -199,12 +199,12 @@ private:
     list<TaskTree *> tour;
     mat_d origin_mat;
     double best;
+    TaskTree *root;
 
 public:
     Task(const size_t size, double (*pf)() = GetRnd);
     Task(const char *filename, const size_t size);
     void RunTask();
-    TaskTree *root;
 };
 Task::Task(const size_t size, double (*pf)())
 {
@@ -309,10 +309,10 @@ int main()
 {
     const auto start_time = high_resolution_clock::now();
     srand(time(NULL));
-    const size_t nDim1 = 6, nDim2 = 23;
+    const size_t nDim1 = 6, nDim2 = 33;
     //Task t1("input.txt", nDim1);
-    Task t1(nDim2);
-    t1.RunTask();
+    Task t2(nDim2);
+    t2.RunTask();
     const auto end_time = high_resolution_clock::now();
     PrintTime(start_time, end_time);
 }
