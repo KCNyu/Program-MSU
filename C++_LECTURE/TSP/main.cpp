@@ -5,6 +5,7 @@
 #include <fstream>
 #include <chrono>
 #include <map>
+#include <memory>
 
 #define MAX_DIST 100
 #define INF 32767
@@ -18,7 +19,7 @@ using path_t = vector<pair<size_t, size_t>>;
 
 double F(double x)
 {
-    return (5 / 6) * (1 + pow(x, 4));
+    return (5 / 6.0) * (1 + pow(x, 4));
 }
 // use Acceptance-Rejection Method
 // max from 0 to 1 in function F is 5/3
@@ -29,7 +30,7 @@ double GetRnd()
     {
         u1 = rand() % MAX_DIST;
         u2 = rand() % MAX_DIST;
-        if (u2 <= (3 / 5) * F(u1))
+        if (u2 <= (3 / 5.0) * F(u1))
             return u1;
     }
 }
@@ -40,9 +41,9 @@ class TaskTree
 private:
     mat_d mat;
     double bound;
-    TaskTree* leftTaskTree;
-    TaskTree* rightTaskTree;
-    size_t index_row, index_col;
+    shared_ptr<TaskTree> leftTaskTree;
+    shared_ptr<TaskTree> rightTaskTree;
+    int index_row, index_col;
 
 public:
     path_t path;
@@ -58,16 +59,11 @@ public:
     }
     void SetLeft();
     void SetRight();
-    TaskTree* GetLeft() { return leftTaskTree; }
-    TaskTree* GetRight() { return rightTaskTree; }
+    shared_ptr<TaskTree> GetLeft() { return leftTaskTree; }
+    shared_ptr<TaskTree> GetRight() { return rightTaskTree; }
     double GetBound() { return bound; }
-    size_t GetRowIndex() { return index_row; }
-    size_t GetColIndex() { return index_col; }
-    ~TaskTree()
-    {
-        delete leftTaskTree;
-        delete rightTaskTree;
-    }
+    int GetRowIndex() { return index_row; }
+    int GetColIndex() { return index_col; }
 };
 TaskTree::TaskTree(const mat_d& m, const path_t& p, const double b)
 {
@@ -141,6 +137,7 @@ void TaskTree::ReduceMinElem()
 }
 void TaskTree::FindMinPath()
 {
+    index_row = -1; index_col = -1;
     double max_sum = -1;
     for (size_t i = 0; i < mat.size(); i++)
     {
@@ -192,7 +189,7 @@ void TaskTree::SetLeft()
     }
     mat[index_col][index_row] = INF;
 
-    leftTaskTree = new TaskTree(mat, path, bound);
+    leftTaskTree = make_shared<TaskTree>(mat, path, bound);
 }
 void TaskTree::SetRight()
 {
@@ -200,17 +197,17 @@ void TaskTree::SetRight()
     mat[index_row][index_col] = INF;
 
     path.pop_back();
-    rightTaskTree = new TaskTree(mat, path, bound);
+    rightTaskTree = make_shared<TaskTree>(mat, path, bound);
     path.push_back(make_pair(index_row, index_col));
 }
 class Task
 {
 private:
     map<size_t, size_t> bestpath;
-    list<TaskTree*> tour;
+    list<shared_ptr<TaskTree>> tour;
     mat_d origin_mat;
     double best;
-    TaskTree* root;
+    shared_ptr<TaskTree> root;
 
 public:
     Task(const size_t size, double (*pf)() = GetRnd);
@@ -232,7 +229,7 @@ Task::Task(const size_t size, double (*pf)())
         }
         origin_mat.push_back(tmp);
     }
-    root = new TaskTree(origin_mat);
+    root = make_shared<TaskTree>(origin_mat);
     best = INF;
 }
 Task::Task(const char* filename, const size_t size)
@@ -258,7 +255,7 @@ Task::Task(const char* filename, const size_t size)
         }
     }
     matrix.close();
-    root = new TaskTree(origin_mat);
+    root = make_shared<TaskTree>(origin_mat);
     best = INF;
 }
 void Task::RunTask()
@@ -267,7 +264,7 @@ void Task::RunTask()
     //root->PrintMat();
     while (tour.size() != 0)
     {
-        TaskTree* head = tour.front();
+        shared_ptr<TaskTree> head = tour.front();
         tour.pop_front();
         if (head->PathCompleted())
         {
@@ -275,7 +272,7 @@ void Task::RunTask()
             {
                 best = head->GetBound();
                 bestpath.clear();
-                for (int i = 0; i < origin_mat.size(); i++)
+                for (size_t i = 0; i < origin_mat.size(); i++)
                 {
                     bestpath[head->path[i].first] = head->path[i].second;
                 }
@@ -284,7 +281,6 @@ void Task::RunTask()
             {
                 if ((*iter)->GetBound() > best)
                 {
-                    delete (*iter);
                     iter = tour.erase(iter);
                 }
                 else
@@ -294,9 +290,13 @@ void Task::RunTask()
             }
             continue;
         }
+        if (head->GetRowIndex() == -1 && head->GetColIndex() == -1)
+        {
+            continue;
+        }
         head->SetBranch();
-        TaskTree* left = head->GetLeft();
-        TaskTree* right = head->GetRight();
+        shared_ptr<TaskTree> left = head->GetLeft();
+        shared_ptr<TaskTree> right = head->GetRight();
         if (left != nullptr)
         {
             if (left->path.size() < origin_mat.size())
