@@ -36,6 +36,7 @@ double GetRnd()
 }
 /*===============================================================*/
 
+// Task tree node represents each reduction matrix
 class TaskTree
 {
 private:
@@ -47,7 +48,7 @@ private:
 
 public:
     path_t path;
-    TaskTree(const mat_d& m, const path_t& p = {}, const double b = 0);
+    TaskTree(const mat_d &m, const path_t &p = {}, const double b = 0);
     void PrintMat();
     void ReduceMinElem();
     void FindMinPath();
@@ -65,7 +66,7 @@ public:
     int GetRowIndex() { return index_row; }
     int GetColIndex() { return index_col; }
 };
-TaskTree::TaskTree(const mat_d& m, const path_t& p, const double b)
+TaskTree::TaskTree(const mat_d &m, const path_t &p, const double b)
 {
     mat = m;
     path = p;
@@ -84,13 +85,14 @@ void TaskTree::PrintMat()
             cout.width(5);
             if (iter == INF)
                 cout << "INF"
-                << " ";
+                     << " ";
             else
                 cout << iter << " ";
         }
         cout << endl;
     }
 }
+// Minimum statute
 void TaskTree::ReduceMinElem()
 {
     for (size_t i = 0; i < mat.size(); i++)
@@ -135,9 +137,11 @@ void TaskTree::ReduceMinElem()
     }
     FindMinPath();
 }
+// Find the shortest path possible
 void TaskTree::FindMinPath()
 {
-    index_row = -1; index_col = -1;
+    index_row = -1;
+    index_col = -1;
     double max_sum = -1;
     for (size_t i = 0; i < mat.size(); i++)
     {
@@ -165,9 +169,9 @@ void TaskTree::FindMinPath()
     }
     path.push_back(make_pair(index_row, index_col));
 }
+// Subtree containing the selected path
 void TaskTree::SetLeft()
 {
-    // left subtree
     map<size_t, size_t> pathTest;
     for (size_t i = 0; i < path.size() - 1; i++)
     {
@@ -191,15 +195,16 @@ void TaskTree::SetLeft()
 
     leftTaskTree = make_shared<TaskTree>(mat, path, bound);
 }
+// Does not contain the subtree of the selected path
 void TaskTree::SetRight()
 {
-    // right subtree
     mat[index_row][index_col] = INF;
 
     path.pop_back();
     rightTaskTree = make_shared<TaskTree>(mat, path, bound);
     path.push_back(make_pair(index_row, index_col));
 }
+// Problem-solving tree
 class Task
 {
 private:
@@ -211,8 +216,9 @@ private:
 
 public:
     Task(const size_t size, double (*pf)() = GetRnd);
-    Task(const char* filename, const size_t size);
+    Task(const char *filename, const size_t size);
     void RunTask();
+    void PrintPath();
 };
 Task::Task(const size_t size, double (*pf)())
 {
@@ -232,7 +238,9 @@ Task::Task(const size_t size, double (*pf)())
     root = make_shared<TaskTree>(origin_mat);
     best = INF;
 }
-Task::Task(const char* filename, const size_t size)
+// Get the problem matrix from the file
+// for running the demo
+Task::Task(const char *filename, const size_t size)
 {
     ifstream matrix(filename);
     if (!matrix.is_open())
@@ -258,35 +266,26 @@ Task::Task(const char* filename, const size_t size)
     root = make_shared<TaskTree>(origin_mat);
     best = INF;
 }
+// Eliminate according to the lower bound
 void Task::RunTask()
 {
     tour.push_front(root);
-    //root->PrintMat();
+    // root->PrintMat();
     while (tour.size() != 0)
     {
         shared_ptr<TaskTree> head = tour.front();
         tour.pop_front();
+        if (head->GetBound() > best)
+        {
+            continue;
+        }
         if (head->PathCompleted())
         {
-            if (best > head->GetBound())
+            best = head->GetBound();
+            bestpath.clear();
+            for (size_t i = 0; i < origin_mat.size(); i++)
             {
-                best = head->GetBound();
-                bestpath.clear();
-                for (size_t i = 0; i < origin_mat.size(); i++)
-                {
-                    bestpath[head->path[i].first] = head->path[i].second;
-                }
-            }
-            for (auto iter = tour.begin(); iter != tour.end();)
-            {
-                if ((*iter)->GetBound() > best)
-                {
-                    iter = tour.erase(iter);
-                }
-                else
-                {
-                    ++iter;
-                }
+                bestpath[head->path[i].first] = head->path[i].second;
             }
             continue;
         }
@@ -326,7 +325,10 @@ void Task::RunTask()
             tour.push_front(right);
         }
     }
-#if 1
+    PrintPath();
+}
+void Task::PrintPath()
+{
     cout << "Best path: 1 => ";
     size_t begin = 0;
     while (bestpath[begin] != 0)
@@ -335,24 +337,14 @@ void Task::RunTask()
         begin = bestpath[begin];
     }
     cout << "1" << endl;
-    double sum = 0;
-    /*
-    for (auto p : bestpath)
-    {
-        //cout << p.first << " => " << p.second << endl;
-        sum += origin_mat[p.first][p.second];
-    }
-    cout << "sum: " << sum << endl;
-    */
-#endif
     cout << "best tour: " << best << endl;
 }
 void PrintTime(high_resolution_clock::time_point start_time,
-    high_resolution_clock::time_point end_time)
+               high_resolution_clock::time_point end_time)
 {
     cout << "Time: "
-        << duration_cast<duration<double, milli>>(end_time - start_time).count()
-        << " ms" << endl;
+         << duration_cast<duration<double, milli>>(end_time - start_time).count()
+         << " ms" << endl;
 }
 int main()
 {
