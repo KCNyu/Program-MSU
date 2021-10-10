@@ -40,28 +40,17 @@ double GetRnd()
 class TaskTree
 {
 private:
-    mat_d mat;
     double bound;
-    shared_ptr<TaskTree> leftTaskTree;
-    shared_ptr<TaskTree> rightTaskTree;
     int index_row, index_col;
 
 public:
+    mat_d mat;
     path_t path;
     TaskTree(const mat_d &m, const path_t &p = {}, const double b = 0);
     void PrintMat();
     void ReduceMinElem();
     void FindMinPath();
     bool PathCompleted() { return path.size() == mat.size(); }
-    void SetBranch()
-    {
-        SetRight();
-        SetLeft();
-    }
-    void SetLeft();
-    void SetRight();
-    shared_ptr<TaskTree> GetLeft() { return leftTaskTree; }
-    shared_ptr<TaskTree> GetRight() { return rightTaskTree; }
     double GetBound() { return bound; }
     int GetRowIndex() { return index_row; }
     int GetColIndex() { return index_col; }
@@ -70,8 +59,6 @@ TaskTree::TaskTree(const mat_d &m, const path_t &p, const double b)
 {
     mat = m;
     path = p;
-    leftTaskTree = nullptr;
-    rightTaskTree = nullptr;
     bound = b;
     ReduceMinElem();
 }
@@ -170,8 +157,9 @@ void TaskTree::FindMinPath()
     path.push_back(make_pair(index_row, index_col));
 }
 // Subtree containing the selected path
-void TaskTree::SetLeft()
+shared_ptr<TaskTree> SetLeft(const mat_d &m, const path_t &path, const double bound, const int index_row, const int index_col)
 {
+    mat_d mat = m;
     map<size_t, size_t> pathTest;
     for (size_t i = 0; i < path.size() - 1; i++)
     {
@@ -183,7 +171,7 @@ void TaskTree::SetLeft()
         pos = pathTest[pos];
         if (pos == index_row)
         {
-            return;
+            return nullptr;
         }
     }
     for (size_t i = 0; i < mat.size(); i++)
@@ -193,16 +181,17 @@ void TaskTree::SetLeft()
     }
     mat[index_col][index_row] = INF;
 
-    leftTaskTree = make_shared<TaskTree>(mat, path, bound);
+    return make_shared<TaskTree>(mat, path, bound);
 }
 // Does not contain the subtree of the selected path
-void TaskTree::SetRight()
+shared_ptr<TaskTree> SetRight(const mat_d &m, const path_t &p, const double bound, const int index_row, const int index_col)
 {
+    mat_d mat = m;
     mat[index_row][index_col] = INF;
 
+    path_t path = p;
     path.pop_back();
-    rightTaskTree = make_shared<TaskTree>(mat, path, bound);
-    path.push_back(make_pair(index_row, index_col));
+    return make_shared<TaskTree>(mat, path, bound);
 }
 // Problem-solving tree
 class Task
@@ -293,9 +282,8 @@ void Task::RunTask()
         {
             continue;
         }
-        head->SetBranch();
-        shared_ptr<TaskTree> left = head->GetLeft();
-        shared_ptr<TaskTree> right = head->GetRight();
+        shared_ptr<TaskTree> left = SetLeft(head->mat, head->path, head->GetBound(), head->GetRowIndex(), head->GetColIndex());
+        shared_ptr<TaskTree> right = SetRight(head->mat, head->path, head->GetBound(), head->GetRowIndex(), head->GetColIndex());
         if (left != nullptr)
         {
             if (left->path.size() < origin_mat.size())
