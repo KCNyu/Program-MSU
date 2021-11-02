@@ -431,11 +431,24 @@ int AVLTree<Key>::Search(Key *pKey)
         return this->nNom;
     return (*(this->pKey) < *pKey) ? Right->Search(pKey) : Left->Search(pKey);
 }
+template <class Key>
+class DataAVL
+{
+private:
+    AVLTree<Key> *root;
+
+public:
+    DataAVL() { root = new AVLTree<Key>; }
+    bool Add(Key *pKey, int nNom) { return root->Add(pKey, root, nNom); }
+    bool Delete(Key *elem) { return root->Delete(elem, root); }
+    int Search(Key *pKey) { return root->Search(pKey); }
+    ~DataAVL() { delete root; }
+};
 int main(int argc, char *argv[])
 {
     StudentsAll stall;
-    AVLTree<Fio> *avlFIO = new AVLTree<Fio>;
-    AVLTree<long> *avlRating = new AVLTree<long>;
+    DataAVL<Fio> avlFIO; 
+    DataAVL<long> avlRating;
     int nStud = 100;
     for (int i = 0; i < nStud; i++)
     {
@@ -444,34 +457,32 @@ int main(int argc, char *argv[])
         stall.Add(st);
 
         Fio *fio = new Fio(stall.GetFio(i));
-        if (avlFIO->Search(fio) >= 0)
+        if (avlFIO.Search(fio) >= 0)
         {
             continue;
         }
 
         long *T = new long(st.GetRating());
-        if (avlRating->Search(T) >= 0)
+        if (avlRating.Search(T) >= 0)
         {
             continue;
         }
-        avlFIO->Add(fio, avlFIO, stall.GetKol() - 1);
-        avlRating->Add(T, avlRating, stall.GetKol() - 1);
+        avlFIO.Add(fio,  stall.GetKol() - 1);
+        avlRating.Add(T,  stall.GetKol() - 1);
     }
     cout << stall << endl
          << endl;
     Fio fio = stall.GetFio(95);
     cout << fio << endl;
 
-    cout << avlFIO->Search(&fio) << endl
+    cout << avlFIO.Search(&fio) << endl
          << endl;
 
     long int rating = stall.GetRating(80);
     cout << rating << endl;
 
-    cout << avlRating->Search(&rating) << endl
+    cout << avlRating.Search(&rating) << endl
          << endl;
     cout << "***** KONEC" << endl;
-    delete avlFIO;
-    delete avlRating;
     return 0;
 }
