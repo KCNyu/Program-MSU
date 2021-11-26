@@ -15,27 +15,27 @@ using chrono::high_resolution_clock;
 template <typename T>
 class Matrix_LU
 {
-    private:
-        vector<vector<T>> data;
-        vector<vector<T>> l_data;
-        vector<vector<T>> u_data;
-        vector<vector<int>> p_data;
-        vector<T> b_data;
-        vector<T> x_data;
-        vector<T> y_data;
-        int row, col;
-        const double eps = 0.0000001;
+private:
+    vector<vector<T>> data;
+    vector<vector<T>> l_data;
+    vector<vector<T>> u_data;
+    vector<vector<int>> p_data;
+    vector<T> b_data;
+    vector<T> x_data;
+    vector<T> y_data;
+    int row, col;
+    const double eps = 0.0000001;
 
-    public:
-        Matrix_LU(const vector<vector<T>> &data, const vector<vector<T>> &b_data);
-        Matrix_LU(const int n);
-        void InitData();
-        void PrintData();
-        void DecompLU();
-        void DecompLUP();
-        void SolveSystem();
+public:
+    Matrix_LU(const vector<vector<T>> &data, const vector<vector<T>> &b_data);
+    Matrix_LU(const int n);
+    void InitData();
+    void PrintData();
+    void DecompLU();
+    void DecompLUP();
+    void SolveSystem();
 };
-    template <typename T>
+template <typename T>
 void Matrix_LU<T>::InitData()
 {
     row = data.size();
@@ -49,13 +49,13 @@ void Matrix_LU<T>::InitData()
     }
     col = data.back().size();
 }
-    template <typename T>
+template <typename T>
 Matrix_LU<T>::Matrix_LU(const vector<vector<T>> &data, const vector<vector<T>> &b_data)
 {
     this->data = data;
     this->b_data = b_data;
 }
-    template <typename T>
+template <typename T>
 Matrix_LU<T>::Matrix_LU(const int n)
 {
     data.resize(n);
@@ -75,7 +75,7 @@ Matrix_LU<T>::Matrix_LU(const int n)
     double h = 1.0 / (n + 1.0);
     for (int i = 0; i < n; i++)
     {
-        b_data[i] = 2.0*h*h;
+        b_data[i] = 2.0 * h * h;
     }
 }
 template <typename T>
@@ -136,12 +136,12 @@ void Matrix_LU<T>::PrintData()
     for (int i = 1; i <= n; i++)
     {
         cout.width(5);
-        cout << x_data[i-1] << endl;
-        double y = i*h*(1.0-i*h);
-        //cout << "y = " << y << endl;
-        x_eps += pow(fabs(x_data[i-1]-y),2);
+        cout << x_data[i - 1] << endl;
+        double y = i * h * (1.0 - i * h);
+        // cout << "y = " << y << endl;
+        x_eps += pow(fabs(x_data[i - 1] - y), 2);
     }
-    x_eps = pow(x_eps,0.5);
+    x_eps = pow(x_eps, 0.5);
     cout << "============EPS===============" << endl;
     cout << "eps = " << x_eps << endl;
     /*
@@ -158,7 +158,7 @@ void Matrix_LU<T>::PrintData()
         det *= u_data[i][i];
     cout << "det = " << det << endl;
 }
-    template <typename T>
+template <typename T>
 void Matrix_LU<T>::DecompLU()
 {
     if (row != col)
@@ -204,7 +204,7 @@ void Matrix_LU<T>::DecompLU()
         }
     }
 }
-    template <typename T>
+template <typename T>
 void Matrix_LU<T>::DecompLUP()
 {
     if (row != col)
@@ -276,7 +276,7 @@ void Matrix_LU<T>::DecompLUP()
         }
     }
 }
-    template <typename T>
+template <typename T>
 void Matrix_LU<T>::SolveSystem()
 {
     int n = row;
@@ -305,23 +305,23 @@ void Matrix_LU<T>::SolveSystem()
     }
 }
 void PrintTime(high_resolution_clock::time_point start_time,
-        high_resolution_clock::time_point end_time)
+               high_resolution_clock::time_point end_time)
 {
     cout << "Time: "
-        << duration_cast<duration<double, milli>>(end_time - start_time).count()
-        << " ms" << endl;
+         << duration_cast<duration<double, milli>>(end_time - start_time).count()
+         << " ms" << endl;
 }
-void test()
+void test(const int n)
 {
     const auto start_time = high_resolution_clock::now();
-    Matrix_LU<double> m(1000);
+    Matrix_LU<double> m(n);
     m.DecompLUP();
     m.SolveSystem();
-    m.PrintData();
     const auto end_time = high_resolution_clock::now();
+    m.PrintData();
     PrintTime(start_time, end_time);
 }
 int main()
 {
-    test();
+    test(1000);
 }
