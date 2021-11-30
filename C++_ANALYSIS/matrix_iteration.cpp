@@ -92,7 +92,7 @@ matrix_iteration::matrix_iteration(const int n) : sz(n)
 }
 void matrix_iteration::print_vec(const char index)
 {
-	vec_d *vec;
+	vec_d *vec = nullptr;
 	switch (index)
 	{
 	case 'f':
@@ -124,7 +124,7 @@ void matrix_iteration::print_vec(const char index)
 }
 void matrix_iteration::print_matr(const char index)
 {
-	matr_d *matr;
+	matr_d *matr = nullptr;
 	switch (index)
 	{
 	case 'A':
