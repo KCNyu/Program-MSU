@@ -1,8 +1,5 @@
 #include <chrono>
 #include <cmath>
-#include <complex>
-#include <cstdlib>
-#include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
@@ -13,19 +10,22 @@ using chrono::duration;
 using chrono::duration_cast;
 using chrono::high_resolution_clock;
 
+using matr_d = vector<vector<double>>;
+using vec_d = vector<double>;
+
 class matrix_iteration
 {
 private:
-	vector<vector<double>> matr_A;
-	vector<vector<double>> matr_A1;
-	vector<vector<double>> matr_A2;
-	vector<vector<double>> matr_B;
-	vector<vector<double>> matr_inverse_B;
-	vector<vector<double>> matr_inverse_B_A;
-	vector<double> vec_f;
-	vector<double> vec_w;
-	vector<double> vec_r;
-	vector<double> vec_x;
+	matr_d matr_A;
+	matr_d matr_A1;
+	matr_d matr_A2;
+	matr_d matr_B;
+	matr_d matr_inverse_B;
+	matr_d matr_inverse_B_A;
+	vec_d vec_f;
+	vec_d vec_w;
+	vec_d vec_r;
+	vec_d vec_x;
 	double tau;
 	const int sz;
 	int iteration = 0;
@@ -92,7 +92,7 @@ matrix_iteration::matrix_iteration(const int n) : sz(n)
 }
 void matrix_iteration::print_vec(const char index)
 {
-	vector<double> *vec;
+	vec_d *vec;
 	switch (index)
 	{
 	case 'f':
@@ -124,7 +124,7 @@ void matrix_iteration::print_vec(const char index)
 }
 void matrix_iteration::print_matr(const char index)
 {
-	vector<vector<double>> *matr;
+	matr_d *matr;
 	switch (index)
 	{
 	case 'A':
@@ -178,8 +178,8 @@ void matrix_iteration::print()
 }
 void matrix_iteration::init_matr_B(const double w)
 {
-	vector<vector<double>> matr_t1(sz);
-	vector<vector<double>> matr_t2(sz);
+	matr_d matr_t1(sz);
+	matr_d matr_t2(sz);
 
 	for (int i = 0; i < sz; i++)
 	{
@@ -211,7 +211,7 @@ void matrix_iteration::init_matr_B(const double w)
 void matrix_iteration::init_matr_inverse_B()
 {
 	const double EPS = 0.0000000001;
-	vector<vector<double>> tmp = matr_B;
+	matr_d tmp = matr_B;
 	matr_inverse_B.resize(sz);
 	for (int i = 0; i < sz; i++)
 	{
@@ -314,8 +314,8 @@ void matrix_iteration::iterate_vec_x()
 }
 void matrix_iteration::iterate_tau()
 {
-	vector<double> Aw(sz);
-	vector<double> BAw(sz);
+	vec_d Aw(sz);
+	vec_d BAw(sz);
 	double a = 0, b = 0;
 	for (int i = 0; i < sz; i++)
 	{
@@ -375,6 +375,7 @@ void test(const int n, const double w, const double mis, bool option_print)
 }
 int main(int argc, char const *argv[])
 {
-	test(50, 1, 0.01, true);
+	test(100, 1.783, 0.01, false);
+	// w ≈ 1.783
 	return 0;
 }
