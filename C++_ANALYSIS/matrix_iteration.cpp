@@ -399,6 +399,7 @@ int main(int argc, char const *argv[])
     cout << "Matrix Dim = ";
     int n;
     cin >> n;
+
     test(n, 1.783, 0.01, 3, true);
     // w ≈ 1.783
     return 0;
