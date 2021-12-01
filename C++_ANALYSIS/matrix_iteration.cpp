@@ -341,7 +341,7 @@ void matrix_iteration::iterate(const double e, const int option)
 			mis = 0;
 			for (int i = 0; i < sz; i++)
 			{
-				double tmp = fabs(vec_x[i] - 1);
+				double tmp = vec_x[i] - 1;
 				mis += tmp * tmp;
 			}
 			mis = sqrt(mis);
@@ -408,7 +408,11 @@ void test(const int n, const double w, const double eps, const int optino_eps, b
 }
 int main(int argc, char const *argv[])
 {
-	test(100, 1.783, 0.01, 3, true);
+    cout << "Matrix Dim = ";
+    int n;
+    cin >> n;
+
+	test(n, 1.783, 0.01, 4, true);
 	// w ≈ 1.783
 	return 0;
 }
