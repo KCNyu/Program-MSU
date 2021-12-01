@@ -20,26 +20,28 @@ private:
 	matr_d matr_A1;
 	matr_d matr_A2;
 	matr_d matr_B;
-	matr_d matr_inverse_B;
-	matr_d matr_inverse_B_A;
 	vec_d vec_f;
 	vec_d vec_w;
+	vec_d vec_w_temp;
 	vec_d vec_r;
+	vec_d vec_r_temp;
 	vec_d vec_x;
+	vec_d vec_x_temp;
 	double tau;
+	double tau_temp;
 	const int sz;
 	int iteration = 0;
+	double alpha = 1;
 
 public:
 	matrix_iteration(const int n);
-	void init_matr_B(const double w);
-	void init_matr_inverse_B();
-	void init_matr_inverse_B_A();
+	void init_matr_B();
 	void iterate_vec_r();
 	void iterate_vec_w();
 	void iterate_vec_x();
 	void iterate_tau();
-	void iterate(const double eps, const int option);
+	void iterate_alpha();
+	void iterate(const double eps);
 	void print_matr(const char index);
 	void print_vec(const char index);
 	void print();
@@ -54,8 +56,11 @@ matrix_iteration::matrix_iteration(const int n) : sz(n)
 	matr_A2.resize(sz);
 	vec_f.resize(sz);
 	vec_x.resize(sz);
+	vec_x_temp.resize(sz);
 	vec_r.resize(sz);
+	vec_r_temp.resize(sz);
 	vec_w.resize(sz);
+	vec_w_temp.resize(sz);
 
 	for (int i = 1; i <= sz; i++)
 	{
@@ -87,6 +92,7 @@ matrix_iteration::matrix_iteration(const int n) : sz(n)
 		}
 
 		vec_f[i - 1] = fi;
+		vec_x[i - 1] = 1. / 2;
 	}
 }
 void matrix_iteration::print_vec(const char index)
@@ -138,11 +144,6 @@ void matrix_iteration::print_matr(const char index)
 	case 'B':
 		matr = &matr_B;
 		break;
-	case 'b':
-		matr = &matr_inverse_B;
-		break;
-	case 'a':
-		matr = &matr_inverse_B_A;
 	default:
 		break;
 	}
@@ -168,121 +169,26 @@ void matrix_iteration::print()
 	print_matr('1');
 	print_matr('2');
 	print_matr('B');
-	print_matr('b');
-	print_matr('a');
 	print_vec('f');
 	print_vec('w');
 	print_vec('r');
 	print_vec('x');
 }
-void matrix_iteration::init_matr_B(const double w)
+void matrix_iteration::init_matr_B()
 {
-	matr_d matr_t1(sz);
-	matr_d matr_t2(sz);
-
-	for (int i = 0; i < sz; i++)
-	{
-		matr_t1[i].resize(sz);
-		matr_t2[i].resize(sz);
-		for (int j = 0; j < sz; j++)
-		{
-			matr_t1[i][j] = w * matr_A1[i][j];
-			matr_t2[i][j] = w * matr_A2[i][j];
-			if (i == j)
-			{
-				matr_t1[i][j] += 1;
-				matr_t2[i][j] += 1;
-			}
-		}
-	}
-
 	matr_B.resize(sz);
 	for (int i = 0; i < sz; i++)
 	{
 		matr_B[i].resize(sz);
-		for (int j = 0; j < sz; j++)
-		{
-			for (int k = 0; k < sz; k++)
-				matr_B[i][j] += matr_t1[i][k] * matr_t2[k][j];
-		}
-	}
-}
-void matrix_iteration::init_matr_inverse_B()
-{
-	const double EPS = 0.0000000001;
-	matr_d tmp = matr_B;
-	matr_inverse_B.resize(sz);
-	for (int i = 0; i < sz; i++)
-	{
-		matr_inverse_B[i].resize(sz);
-		matr_inverse_B[i][i] = 1;
-	}
-	for (int i = 0; i < sz - 1; i++)
-	{
-		for (int j = i + 1; j < sz; j++)
-		{
-			if (tmp[i][i] < EPS && tmp[i][i] > -1 * EPS)
-			{
-				bool flag = true;
-				for (int m = i + 1; m < sz; m++)
-				{
-					if (tmp[m][i] < EPS && tmp[m][i] > -1 * EPS)
-						continue;
-					else
-					{
-						swap(tmp[i], tmp[m]);
-						swap(matr_inverse_B[i], matr_inverse_B[m]);
-						flag = false;
-					}
-				}
-				if (flag)
-					throw "Doesn't have result!\n";
-			}
-			double temp = tmp[j][i] / tmp[i][i];
-			for (int k = 0; k < sz; k++)
-			{
-				tmp[j][k] -= tmp[i][k] * temp;
-				matr_inverse_B[j][k] -= matr_inverse_B[i][k] * temp;
-			}
-		}
-	}
-	for (int i = 0; i < sz; i++)
-	{
-		double first = tmp[i][i];
-		for (int j = 0; j < sz; j++)
-		{
-			tmp[i][j] /= first;
-			matr_inverse_B[i][j] /= first;
-		}
-	}
-	for (int i = sz - 1; i > 0; i--)
-	{
-		for (int j = 0; j <= i - 1; j++)
-		{
-			double temp = tmp[j][i] / tmp[i][i];
-			for (int k = 0; k < sz; k++)
-			{
-				tmp[j][k] -= tmp[i][k] * temp;
-				matr_inverse_B[j][k] -= matr_inverse_B[i][k] * temp;
-			}
-		}
-	}
-}
-void matrix_iteration::init_matr_inverse_B_A()
-{
-	matr_inverse_B_A.resize(sz);
-	for (int i = 0; i < sz; i++)
-	{
-		matr_inverse_B_A[i].resize(sz);
-		for (int j = 0; j < sz; j++)
-		{
-			for (int k = 0; k < sz; k++)
-				matr_inverse_B_A[i][j] += matr_inverse_B[i][k] * matr_A[k][j];
-		}
+		matr_B[i][i] = 1;
 	}
 }
 void matrix_iteration::iterate_vec_r()
 {
+	for (int i = 0; i < sz; i++)
+	{
+		vec_r_temp[i] = vec_r[i];
+	}
 	for (int i = 0; i < sz; i++)
 	{
 		vec_r[i] = 0;
@@ -297,92 +203,85 @@ void matrix_iteration::iterate_vec_w()
 {
 	for (int i = 0; i < sz; i++)
 	{
+		vec_w_temp[i] = vec_w[i];
+	}
+	for (int i = 0; i < sz; i++)
+	{
 		vec_w[i] = 0;
 		for (int j = 0; j < sz; j++)
 		{
-			vec_w[i] += matr_inverse_B[i][j] * vec_r[j];
+			vec_w[i] += matr_B[i][j] * vec_r[j];
 		}
 	}
 }
 void matrix_iteration::iterate_vec_x()
 {
+	vec_d temp = vec_x;
+	vec_d b_ta(sz);
 	for (int i = 0; i < sz; i++)
 	{
-		vec_x[i] -= tau * vec_w[i];
+		for (int j = 0; j < sz; j++)
+		{
+			b_ta[i] += alpha*(matr_B[i][j]-tau*matr_A[i][j])*vec_x[j];
+		}
+	}
+	for (int i = 0; i < sz; i++)
+	{
+		vec_x[i] = b_ta[i]+(1-alpha)*vec_x_temp[i]+alpha*tau*vec_f[i];
+		vec_x_temp[i] = temp[i];
 	}
 }
 void matrix_iteration::iterate_tau()
 {
+	tau_temp = tau;
 	vec_d Aw(sz);
-	vec_d BAw(sz);
 	double a = 0, b = 0;
 	for (int i = 0; i < sz; i++)
 	{
 		for (int j = 0; j < sz; j++)
 		{
 			Aw[i] += matr_A[i][j] * vec_w[j];
-			BAw[i] += matr_inverse_B_A[i][j] * vec_w[j];
 		}
-		a += Aw[i] * vec_w[i];
-		b += BAw[i] * Aw[i];
+		a += vec_w[i] * vec_r[i];
+		b += Aw[i] * vec_w[i];
 	}
 	tau = a / b;
 }
-void matrix_iteration::iterate(const double e, const int option)
+void matrix_iteration::iterate_alpha()
 {
-	init_matr_inverse_B();
-	init_matr_inverse_B_A();
-	double mis;
-	if (option == 3)
+	vec_d Aw(sz);
+	double a = 0, b = 0;
+	for (int i = 0; i < sz; i++)
 	{
-		double eps = e;
-		while (true)
+		for (int j = 0; j < sz; j++)
 		{
-			mis = 0;
-			for (int i = 0; i < sz; i++)
-			{
-				double tmp = fabs(vec_x[i] - 1);
-				mis += tmp * tmp;
-			}
-			mis = sqrt(mis);
-			if (mis <= eps)
-			{
-				break;
-			}
-			iterate_vec_r();
-			iterate_vec_w();
-			iterate_tau();
-			iterate_vec_x();
-			iteration++;
+			Aw[i] += matr_A[i][j] * vec_w_temp[j];
 		}
+		a += vec_w[i] * vec_r[i];
+		b += Aw[i] * vec_r_temp[i];
 	}
-	else if (option == 4)
+	alpha = 1./(1-tau_temp/tau*a/b/alpha);
+}
+void matrix_iteration::iterate(const double eps)
+{
+	init_matr_B();
+	double mis;
+	do
 	{
-		double eps = 0;
+		iterate_vec_r();
+		iterate_vec_w();
+		iterate_tau();
+		iterate_vec_x();
+		if (iteration >= 1) iterate_alpha();
+		mis = 0;
 		for (int i = 0; i < sz; i++)
 		{
-			eps += vec_f[i] * vec_f[i];
+			double tmp = fabs(vec_x[i] - 1);
+			mis += pow(tmp, 2);
 		}
-		eps = sqrt(eps) * e;
-		while (true)
-		{
-			iterate_vec_r();
-			mis = 0;
-			for (int i = 0; i < sz; i++)
-			{
-				mis += vec_r[i] * vec_r[i];
-			}
-			mis = sqrt(mis);
-			if (mis <= eps)
-			{
-				break;
-			}
-			iterate_vec_w();
-			iterate_tau();
-			iterate_vec_x();
-			iteration++;
-		}
-	}
+		mis = pow(mis, 0.5);
+		iteration++;
+	} while (iteration < 5000);
 }
 matrix_iteration::~matrix_iteration()
 {
@@ -394,21 +293,20 @@ void PrintTime(high_resolution_clock::time_point start_time,
 	     << duration_cast<duration<double, milli>>(end_time - start_time).count()
 	     << " ms" << endl;
 }
-void test(const int n, const double w, const double eps, const int optino_eps, bool option_print)
+void test(const int n, const double w, const double mis, bool option_print)
 {
 	const auto start_time = high_resolution_clock::now();
 	matrix_iteration m(n);
-	m.init_matr_B(w);
-	m.iterate(eps, optino_eps);
+	m.iterate(mis);
 	const auto end_time = high_resolution_clock::now();
 	if (option_print)
-		m.print_vec('x');
+		m.print();
 	cout << "iteration = " << m.get_iteration() << endl;
 	PrintTime(start_time, end_time);
 }
 int main(int argc, char const *argv[])
 {
-	test(100, 1.783, 0.01, 3, true);
+	test(10, 1.783, 0.01, true);
 	// w ≈ 1.783
 	return 0;
 }
