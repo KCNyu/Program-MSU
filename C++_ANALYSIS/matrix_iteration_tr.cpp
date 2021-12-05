@@ -92,7 +92,6 @@ matrix_iteration::matrix_iteration(const int n) : sz(n)
 		}
 
 		vec_f[i - 1] = fi;
-		vec_x[i - 1] = 1. / 2;
 	}
 }
 void matrix_iteration::print_vec(const char index)
@@ -258,9 +257,9 @@ void matrix_iteration::iterate_alpha()
 			Aw[i] += matr_A[i][j] * vec_w_temp[j];
 		}
 		a += vec_w[i] * vec_r[i];
-		b += Aw[i] * vec_r_temp[i];
+		b += vec_w_temp[i] * vec_r_temp[i];
 	}
-	alpha = 1./(1-tau_temp/tau*a/b/alpha);
+	alpha = 1./(1-tau/tau_temp*a/b/alpha);
 }
 void matrix_iteration::iterate(const double eps)
 {
@@ -271,8 +270,8 @@ void matrix_iteration::iterate(const double eps)
 		iterate_vec_r();
 		iterate_vec_w();
 		iterate_tau();
-		iterate_vec_x();
 		if (iteration >= 1) iterate_alpha();
+		iterate_vec_x();
 		mis = 0;
 		for (int i = 0; i < sz; i++)
 		{
@@ -281,7 +280,7 @@ void matrix_iteration::iterate(const double eps)
 		}
 		mis = pow(mis, 0.5);
 		iteration++;
-	} while (iteration < 5000);
+	} while (mis >= eps);
 }
 matrix_iteration::~matrix_iteration()
 {
@@ -300,13 +299,13 @@ void test(const int n, const double w, const double mis, bool option_print)
 	m.iterate(mis);
 	const auto end_time = high_resolution_clock::now();
 	if (option_print)
-		m.print();
+		m.print_vec('x');
 	cout << "iteration = " << m.get_iteration() << endl;
 	PrintTime(start_time, end_time);
 }
 int main(int argc, char const *argv[])
 {
-	test(10, 1.783, 0.01, true);
+	test(500, 1.783, 0.01, true);
 	// w ≈ 1.783
 	return 0;
 }
