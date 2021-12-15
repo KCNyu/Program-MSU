@@ -1,7 +1,13 @@
-#include <iostream>
+#define GL_SILENCE_DEPRECATION
+
 #include <cmath>
 #include <vector>
+#include <iostream>
+#include <stdlib.h>
+#include <cmath>
 #include <functional>
+#include <chrono>
+#include <GLUT/GLUT.h>
 #include <iomanip>
 
 using namespace std;
@@ -9,6 +15,7 @@ using chrono::duration;
 using chrono::duration_cast;
 using chrono::high_resolution_clock;
 
+using vec_d = vector<double>;
 using matr_d = vector<vector<double>>;
 
 inline matr_d plus1(const matr_d &m1, const matr_d &m2)
@@ -166,21 +173,23 @@ private:
 	double f(double x);
 	double fi(double x, double m);
 	double psi(double x, double m);
-	matr_d x;
-	matr_d y;
+
 	matr_d A;
 	matr_d B;
 	matr_d C;
 	const double step = 0.01;
 	const double eps = 0.000001;
-	int sz;
 
 public:
 	Integral_equation(const double a, const double b, const double lambda, const int n);
 	void Solve();
 	void Print();
 	void Print(const char index);
-	~Integral_equation();
+	double Spline(double x);
+	matr_d x;
+	matr_d y;
+	int sz;
+	~Integral_equation() {}
 };
 
 Integral_equation::Integral_equation(const double a, const double b, const double lambda, const int n) : a(a),
@@ -262,6 +271,58 @@ void Integral_equation::Solve()
 		y = plus1(y, dot(x_fi, C[i][0]));
 	}
 }
+double Integral_equation::Spline(double p)
+{
+	vec_d h(sz), s(sz), F(sz);
+	matr_d m(sz);
+	for (size_t i = 0; i < sz; i++)
+	{
+		m[i].resize(sz);
+	}
+	for (size_t i = sz - 1; i > 0; i--)
+	{
+		F[i] = (y[i][0] - y[i - 1][0]) / (x[i][0] - x[i - 1][0]);
+		h[i - 1] = x[i][0] - x[i - 1][0];
+	}
+	for (size_t i = 1; i < sz - 1; i++)
+	{
+		m[i][i] = 2 * (h[i - 1] + h[i]);
+		if (i != 1)
+		{
+			m[i][i - 1] = h[i - 1];
+			m[i - 1][i] = h[i - 1];
+		}
+		m[i][n - 1] = 6 * (F[i + 1] - F[i]);
+	}
+
+	for (size_t i = 1; i < sz - 2; i++)
+	{
+		double temp = (m[i + 1][i] / m[i][i]);
+		for (size_t j = 1; j <= sz - 1; j++)
+			m[i + 1][j] -= temp * m[i][j];
+	}
+
+	for (size_t i = sz - 2; i > 0; i--)
+	{
+		double sum = 0;
+		for (size_t j = i; j <= sz - 2; j++)
+			sum += m[i][j] * s[j];
+		s[i] = (m[i][sz - 1] - sum) / m[i][i];
+	}
+	double res = 0;
+	for (size_t i = 0; i < sz - 1; i++)
+	{
+		if (x[i][0] <= p && p <= x[i + 1][0])
+		{
+			double a1 = (s[i + 1] - s[i]) / (6 * h[i]);
+			double b1 = s[i] / 2;
+			double c1 = (y[i + 1][0] - y[i][0]) / h[i] - (2 * h[i] * s[i] + s[i + 1] * h[i]) / 6;
+			double d1 = y[i][0];
+			res = a1 * pow((p - x[i][0]), 3) + b1 * pow((p - x[i][0]), 2) + c1 * (p - x[i][0]) + d1;
+		}
+	}
+	return res;
+}
 void Integral_equation::Print(const char index)
 {
 	matr_d *matr = nullptr;
@@ -317,8 +378,34 @@ void Integral_equation::Print()
 	Print('C');
 	Print('y');
 }
-Integral_equation::~Integral_equation()
+
+Integral_equation eq(0, 1, 1, 3);
+
+void Display()
 {
+	glClearColor(1, 1, 1, 1);
+	glClear(GL_COLOR_BUFFER_BIT);
+
+	glBegin(GL_LINES);
+	glColor3f(0, 0, 0);
+	glVertex3f(-1, 0, 0);
+	glVertex3f(1, 0, 0);
+	glVertex3f(0, -1, 0);
+	glVertex3f(0, 1, 0);
+	glEnd();
+
+	glBegin(GL_LINE_STRIP);
+	glColor3f(0, 1, 0);
+	for (double i = 0; i <= 0.9; i += 0.01)
+		glVertex2f(i, eq.Spline(i));
+	glEnd();
+
+	glBegin(GL_LINES);
+	glColor3f(1, 0, 0);
+	for (size_t i = 0; i < eq.sz; i++)
+		glVertex2f(eq.x[i][0], eq.y[i][0]);
+	glEnd();
+	glFlush(); //更新窗口
 }
 void PrintTime(high_resolution_clock::time_point start_time,
 	       high_resolution_clock::time_point end_time)
@@ -327,17 +414,21 @@ void PrintTime(high_resolution_clock::time_point start_time,
 	     << duration_cast<duration<double, milli>>(end_time - start_time).count()
 	     << " ms" << endl;
 }
-void test(const int n)
+int main(int argc, char *argv[])
 {
 	const auto start_time = high_resolution_clock::now();
-	Integral_equation eq(0, 1, 1, n);
 	eq.Solve();
 	eq.Print();
 	const auto end_time = high_resolution_clock::now();
 	PrintTime(start_time, end_time);
-}
-int main(int argc, char const *argv[])
-{
-	test(4);
+
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_RGB | GLUT_SINGLE);
+	glutInitWindowPosition(1000, 1000);
+	glutInitWindowSize(400, 400);
+	glutCreateWindow("graph");
+	glutDisplayFunc(&Display);
+	glutMainLoop();
+
 	return 0;
 }
