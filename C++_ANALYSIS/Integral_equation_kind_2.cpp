@@ -292,7 +292,7 @@ double Integral_equation::Spline(double p)
 			m[i][i - 1] = h[i - 1];
 			m[i - 1][i] = h[i - 1];
 		}
-		m[i][n - 1] = 6 * (F[i + 1] - F[i]);
+		m[i][sz - 1] = 6 * (F[i + 1] - F[i]);
 	}
 
 	for (size_t i = 1; i < sz - 2; i++)
@@ -405,7 +405,7 @@ void Display()
 	for (size_t i = 0; i < eq.sz; i++)
 		glVertex2f(eq.x[i][0], eq.y[i][0]);
 	glEnd();
-	glFlush(); //更新窗口
+	glFlush();
 }
 void PrintTime(high_resolution_clock::time_point start_time,
 	       high_resolution_clock::time_point end_time)
