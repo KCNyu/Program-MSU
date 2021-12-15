@@ -16,11 +16,11 @@ using chrono::high_resolution_clock;
 
 double y1(double x, double c)
 {
-    return 0.1*(10*x-sqrt(10)*sqrt(c-x*x+2*x-1));
+    return 0.1*(10*x*x-sqrt(10)*sqrt(c-x*x+2*x-1));
 }
 double y2(double x, double c)
 {
-    return 0.1*(10*x+sqrt(10)*sqrt(c-x*x+2*x-1));
+    return 0.1*(10*x*x+sqrt(10)*sqrt(c-x*x+2*x-1));
 }
 double f(double x, double y)
 {
