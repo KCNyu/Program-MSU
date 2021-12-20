@@ -18,19 +18,6 @@ using chrono::high_resolution_clock;
 using vec_d = vector<double>;
 using matr_d = vector<vector<double>>;
 
-inline matr_d plus1(const matr_d &m1, const matr_d &m2)
-{
-	matr_d res(m1.size());
-	for (size_t i = 0; i < m1.size(); i++)
-	{
-		res[i].resize(m1[0].size());
-		for (size_t j = 0; j < m1[0].size(); j++)
-		{
-			res[i][j] = m1[i][j] + m2[i][j];
-		}
-	}
-	return res;
-}
 inline matr_d dot(const matr_d &m1, const matr_d &m2)
 {
 	matr_d res(m1.size());
@@ -49,22 +36,9 @@ inline matr_d dot(const matr_d &m1, const matr_d &m2)
 	}
 	return res;
 }
-inline matr_d dot(const matr_d &m, const double num)
-{
-	matr_d res(m.size());
-	for (size_t i = 0; i < m.size(); i++)
-	{
-		res[i].resize(m[0].size());
-		for (size_t j = 0; j < m[0].size(); j++)
-		{
-			res[i][j] = m[i][j] * num;
-		}
-	}
-	return res;
-}
 matr_d inverse(const matr_d &m)
 {
-	const double EPS = 0.0000000001;
+	const double EPS = 1e-20;
 	matr_d tmp = m;
 	size_t sz = tmp.size();
 	matr_d res;
@@ -132,19 +106,20 @@ class Integral_equation
 private:
 	double a;
 	double b;
-	static double lambda;
 	static double K(double x, double s);
 	double f(double x);
+	double G(double x, double s);
 
 	matr_d A;
+	matr_d A_temp;
 	matr_d B;
-	const double step = 0.01;
-	const double eps = 0.000001;
-	static constexpr double alpha = 0.000000001;
+	const double step = 1e-2;
+	double alpha;
 
 public:
-	Integral_equation(const double a, const double b, const double lambda);
-	void Solve();
+	Integral_equation(const double a, const double b);
+	double Solve(double alpha);
+	double Gold(double left, double right);
 	void Print();
 	void Print(const char index);
 	double Spline(double x);
@@ -153,59 +128,126 @@ public:
 	int sz;
 	~Integral_equation() {}
 };
-double Integral_equation::lambda = -1;
-Integral_equation::Integral_equation(const double a, const double b, const double lambda) : a(a),
-											    b(b)
+Integral_equation::Integral_equation(const double a, const double b) : a(a),
+								       b(b)
 {
-	sz = (b - a) / step;
+	sz = (b - a) / step + 1;
 	A.resize(sz);
 	B.resize(sz);
+	A_temp.resize(sz);
 
 	x.resize(sz);
-	y.resize(sz);
 
 	for (size_t i = 0; i < sz; i++)
 	{
 		A[i].resize(sz);
+		A_temp[i].resize(sz);
 		B[i].resize(1);
 	}
 	for (size_t i = 0; i < sz; i++)
 	{
 		x[i].resize(1);
-		y[i].resize(1);
 		x[i][0] = a + step * i;
-		y[i][0] = f(x[i][0]);
 	}
-	Integral_equation::lambda = lambda / alpha;
 }
 double Integral_equation::K(double x, double s)
 {
 	double miu = 0.2;
-	return lambda * miu / (pow(miu, 2) + pow(x - s, 2));
+	return miu / (pow(miu, 2) + pow(x - s, 2));
+}
+double Integral_equation::G(double x1, double s)
+{
+	double res = 0;
+	for (size_t i = 0; i < sz; i++)
+	{
+		res += K(x[i][0], x1) * K(x[i][0], s) * step;
+	}
+	return res;
 }
 double Integral_equation::f(double x)
 {
-	return cos(M_PI * x) / alpha;
+	return cos(M_PI * x);
 }
-void Integral_equation::Solve()
+double Integral_equation::Solve(double alpha)
 {
-	double wt = 1 / 2;
-	double wj = 1;
+	this->alpha = alpha;
+	double eps = 0;
+
 	for (size_t i = 0; i < sz; i++)
 	{
-		A[i][0] = -step * wt * K(x[i][0], x[0][0]);
-		for (size_t j = 1; j < sz - 1; j++)
+		B[i][0] = 0;
+		for (size_t j = 0; j < sz; j++)
 		{
-			A[i][j] = -step * wj * K(x[i][0], x[j][0]);
+			B[i][0] += step * K(x[j][0], x[i][0]) * f(x[j][0]);
 		}
-		A[i][sz - 1] = -step * wt * K(x[i][0], x[sz - 1][0]);
-		A[i][i] += 1;
 	}
-	for (size_t j = 0; j < sz; j++)
+
+	for (size_t i = 0; i < sz; i++)
 	{
-		B[j][0] = f(x[j][0]);
+		for (size_t j = 0; j < sz; j++)
+		{
+			if (i == j)
+			{
+				A[i][j] = alpha + step * G(x[i][0], x[j][0]);
+			}
+			else
+			{
+				A[i][j] = step * G(x[i][0], x[j][0]);
+			}
+			A_temp[i][j] = step * K(x[i][0], x[j][0]);
+		}
 	}
+
 	y = dot(inverse(A), B);
+	matr_d f1 = dot(A_temp, y);
+	matr_d _f(sz);
+	for (size_t i = 0; i < sz; i++)
+	{
+		_f[i].resize(1);
+		for (size_t j = 0; j < sz; j++)
+		{
+			_f[i][0] += step * K(x[j][0], x[i][0]) * f1[j][0];
+		}
+	}
+	matr_d Ay = dot(A, y);
+	for (size_t i = 0; i < sz; i++)
+	{
+		eps += pow(Ay[i][0] - _f[i][0], 2);
+	}
+	eps = sqrt(eps);
+	return eps;
+}
+double Integral_equation::Gold(double left, double right)
+{
+	double epsilon = 1e-7, f_min, tau = (sqrt(5) - 1) / 2.0;
+	double a_gss = left, b_gss = right, f_lambda = 0, f_mu = 0;
+	double lambda = a_gss + (1.0 - tau) * (b_gss - a_gss), mu = a_gss + tau * (b_gss - a_gss);
+	f_lambda = Solve(lambda);
+	f_mu = Solve(mu);
+	for (int i = 0; fabs(mu - lambda) > epsilon; i++)
+	{
+		if (f_lambda < f_mu)
+		{
+			b_gss = mu;
+			mu = lambda;
+			f_mu = f_lambda;
+			lambda = a_gss + (1.0 - tau) * (b_gss - a_gss);
+			f_lambda = Solve(lambda);
+		}
+		else
+		{
+			a_gss = lambda;
+			lambda = mu;
+			f_lambda = f_mu;
+			mu = a_gss + tau * (b_gss - a_gss);
+			f_mu = Solve(mu);
+		}
+	}
+	f_min = Solve(0.5 * (lambda + mu));
+
+	cout << "alpha = " << alpha << endl;
+	cout << "eps = " << f_min << endl;
+	return f_min;
 }
 double Integral_equation::Spline(double p)
 {
@@ -291,7 +333,7 @@ void Integral_equation::Print(const char index)
 		for (int j = 0; j < (*matr)[0].size(); j++)
 		{
 			cout.width(10);
-			cout << fixed << setprecision(3) << (*matr)[i][j] << " ";
+			cout << fixed << setprecision(6) << (*matr)[i][j] << " ";
 		}
 		if (i < matr->size() - 1)
 		{
@@ -311,7 +353,7 @@ void Integral_equation::Print()
 	Print('y');
 }
 
-Integral_equation eq(-1, 1, -1);
+Integral_equation eq(-1, 1);
 
 void Display()
 {
@@ -328,15 +370,16 @@ void Display()
 
 	glBegin(GL_LINE_STRIP);
 	glColor3f(0, 1, 0);
-	for (double i = -1; i <= 1; i += 0.01)
-		glVertex2f(i, eq.Spline(i) / 5);
+	for (double i = -1; i <= 1; i += 1e-3)
+		glVertex2f(i, eq.Spline(i) / 10);
 	glEnd();
 
-	glBegin(GL_LINES);
+	glBegin(GL_POINTS);
 	glColor3f(1, 0, 0);
 	for (size_t i = 0; i < eq.sz; i++)
-		glVertex2f(eq.x[i][0], eq.y[i][0] / 5);
+		glVertex2f(eq.x[i][0], eq.y[i][0] / 10);
 	glEnd();
+
 	glFlush();
 }
 void PrintTime(high_resolution_clock::time_point start_time,
@@ -349,8 +392,8 @@ void PrintTime(high_resolution_clock::time_point start_time,
 int main(int argc, char *argv[])
 {
 	const auto start_time = high_resolution_clock::now();
-	eq.Solve();
-	eq.Print();
+	eq.Gold(0, 1);
+	// eq.Print();
 	const auto end_time = high_resolution_clock::now();
 	PrintTime(start_time, end_time);
 
