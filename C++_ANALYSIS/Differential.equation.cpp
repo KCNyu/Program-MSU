@@ -9,6 +9,8 @@ using namespace std;
 using vec_d = vector<double>;
 using matr_d = vector<vector<double>>;
 
+#define bound 10.0
+
 class Differential_equation
 {
 private:
@@ -44,7 +46,7 @@ public:
 };
 Differential_equation::Differential_equation(const double a, const double b, const double c, const double step) : a(a), b(b), c(c), step(step)
 {
-    sz = 15.0 / step + 1;
+    sz = bound / step + 1;
     index = 0;
     t.resize(sz);
     y.resize(3);
@@ -283,16 +285,17 @@ void Display()
 
     glBegin(GL_LINES);
     glColor3f(0, 0, 0);
-    glVertex3f(-15, 0, 0);
-    glVertex3f(15, 0, 0);
+    glVertex3f(-bound, 0, 0);
+    glVertex3f(bound, 0, 0);
     glVertex3f(0, -500, 0);
     glVertex3f(0, 500, 0);
     glEnd();
 
+#if 1
     glBegin(GL_LINE_STRIP);
     glColor3f(1, 0, 0);
     eq.Init_Spline(0);
-    for (double i = 0; i <= 15; i += 1e-4)
+    for (double i = 0; i <= bound; i += 1e-4)
     {
         glVertex2f(i, eq.Spline(0, i));
         // cout <<eq.Spline(0, i) << endl;
@@ -302,7 +305,7 @@ void Display()
     glBegin(GL_LINE_STRIP);
     glColor3f(1, 0, 0);
     eq.Init_Spline(1);
-    for (double i = 0; i <= 15; i += 1e-4)
+    for (double i = 0; i <= bound; i += 1e-4)
     {
         glVertex2f(i, eq.Spline(1, i));
         // cout <<eq.Spline(1, i) << endl;
@@ -312,12 +315,14 @@ void Display()
     glBegin(GL_LINE_STRIP);
     glColor3f(1, 0, 0);
     eq.Init_Spline(2);
-    for (double i = 0; i <= 15; i += 1e-4)
+    for (double i = 0; i <= bound; i += 1e-4)
     {
         glVertex2f(i, eq.Spline(2, i));
         // cout <<eq.Spline(2, i) << endl;
     }
     glEnd();
+#endif
+
 #if 1
     glBegin(GL_POINTS);
     glColor3f(1, 0, 0);
@@ -345,7 +350,7 @@ void init(void)
 {
     glClearColor(1.0, 1.0, 1.0, 0.0);
     glMatrixMode(GL_PROJECTION | GL_MODELVIEW);
-    gluOrtho2D(-15, 15, -500, 500);
+    gluOrtho2D(-bound, bound, -500, 500);
 }
 
 int main(int argc, char *argv[])
