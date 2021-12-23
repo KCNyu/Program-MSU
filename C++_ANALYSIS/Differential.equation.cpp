@@ -21,6 +21,9 @@ private:
     matr_d y_predict;
     matr_d f;
     double fn(const size_t n, const size_t i);
+    double fn_k2(const size_t n, const size_t i, const vec_d &k);
+    double fn_k3(const size_t n, const size_t i, const vec_d &k);
+    double fn_k4(const size_t n, const size_t i, const vec_d &k);
     double fn_predict(const size_t n, const size_t i);
 
     // Spline
@@ -62,6 +65,57 @@ Differential_equation::Differential_equation(const double a, const double b, con
         t[i].resize(1);
         t[i][0] = i * step;
     }
+}
+double Differential_equation::fn_k2(const size_t n, const size_t i, const vec_d &k)
+{
+    double res = 0;
+    switch (n)
+    {
+    case 0:
+        res = y[1][i] + step * k[1] / 2.0 - (y[2][i] + step * k[2] / 2.0);
+        break;
+    case 1:
+        res = y[0][i] + step * k[0] / 2.0 + a * (y[1][i] + step * k[1] / 2.0);
+        break;
+    case 2:
+        res = b + (y[2][i] + step * k[2] / 2.0) * (step * k[0] / 2.0 + y[0][i] - c);
+        break;
+    }
+    return res;
+}
+double Differential_equation::fn_k3(const size_t n, const size_t i, const vec_d &k)
+{
+    double res = 0;
+    switch (n)
+    {
+    case 0:
+        res = y[1][i] + step * k[1] / 2.0 - (y[2][i] + step * k[2] / 2.0);
+        break;
+    case 1:
+        res = y[0][i] + step * k[0] / 2.0 + a * (y[1][i] + step * k[1] / 2.0);
+        break;
+    case 2:
+        res = b + (y[2][i] + step * k[2] / 2.0) * (step * k[0] / 2.0 + y[0][i] - c);
+        break;
+    }
+    return res;
+}
+double Differential_equation::fn_k4(const size_t n, const size_t i, const vec_d &k)
+{
+    double res = 0;
+    switch (n)
+    {
+    case 0:
+        res = y[1][i] + step * k[1] - (y[2][i] + step * k[2]);
+        break;
+    case 1:
+        res = y[0][i] + step * k[0] + a * (y[1][i] + step * k[1]);
+        break;
+    case 2:
+        res = b + (y[2][i] + step * k[2]) * (step * k[0] + y[0][i] - c);
+        break;
+    }
+    return res;
 }
 double Differential_equation::fn(const size_t n, const size_t i)
 {
@@ -125,28 +179,42 @@ void Differential_equation::iterate_y()
 }
 void Differential_equation::Solve()
 {
-    y[0][3] = 1.0011;
-    y[0][2] = 1.0005;
-    y[0][1] = 1.0001;
-    y[0][0] = 1;
-    
-    y[1][3] = 1.0361;
-    y[1][2] = 1.0241;
-    y[1][1] = 1.0120;
-    y[1][0] = 1;
-    
-    y[2][3] = 0.9619;
-    y[2][2] = 0.9744;
-    y[2][1] = 0.9871;
-    y[2][0] = 1;
+    for (int j = 0; j < 3; j++)
+    {
+
+        matr_d k(4);
+        for (size_t i = 0; i < 3; i++)
+        {
+            k[0].resize(3);
+            k[0][i] = fn(i, index);
+        }
+        for (size_t i = 0; i < 3; i++)
+        {
+            k[1].resize(3);
+            k[1][i] = fn_k2(i, index, k[0]);
+        }
+        for (size_t i = 0; i < 3; i++)
+        {
+            k[2].resize(3);
+            k[2][i] = fn_k3(i, index, k[1]);
+        }
+        for (size_t i = 0; i < 3; i++)
+        {
+            k[3].resize(3);
+            k[3][i] = fn_k4(i, index, k[2]);
+        }
+        for (size_t i = 0; i < 3; i++)
+        {
+            y[i][index + 1] = y[i][index] + step * (k[0][i] + 2 * k[1][i] + 2 * k[2][i] + k[3][i]) / 6.0;
+        }
+        iterate_f();
+        index++;
+    }
     while (index < sz)
     {
         iterate_f();
-        if (index >= 3)
-        {
-            iterate_y_predict();
-            iterate_y();
-        }
+        iterate_y_predict();
+        iterate_y();
         index++;
     }
 }
@@ -227,7 +295,7 @@ void Display()
     for (double i = 0; i <= 15; i += 1e-4)
     {
         glVertex2f(i, eq.Spline(0, i));
-        //cout <<eq.Spline(0, i) << endl;
+        // cout <<eq.Spline(0, i) << endl;
     }
     glEnd();
 
@@ -237,17 +305,17 @@ void Display()
     for (double i = 0; i <= 15; i += 1e-4)
     {
         glVertex2f(i, eq.Spline(1, i));
-        //cout <<eq.Spline(1, i) << endl;
+        // cout <<eq.Spline(1, i) << endl;
     }
     glEnd();
-    
+
     glBegin(GL_LINE_STRIP);
     glColor3f(1, 0, 0);
     eq.Init_Spline(2);
     for (double i = 0; i <= 15; i += 1e-4)
     {
         glVertex2f(i, eq.Spline(2, i));
-        //cout <<eq.Spline(2, i) << endl;
+        // cout <<eq.Spline(2, i) << endl;
     }
     glEnd();
 #if 1
@@ -269,16 +337,13 @@ void Display()
         glVertex2f(eq.t[i][0], eq.y[2][i]);
     glEnd();
 #endif
-    
 
     glFlush();
 }
 
 void init(void)
 {
-    //设置显示窗口的背景为白色。参数顺序为：红、绿、蓝、透明度。
     glClearColor(1.0, 1.0, 1.0, 0.0);
-    //设置投影类型：正投影
     glMatrixMode(GL_PROJECTION | GL_MODELVIEW);
     gluOrtho2D(-15, 15, -500, 500);
 }
