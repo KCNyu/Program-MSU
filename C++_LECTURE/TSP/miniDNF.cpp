@@ -178,9 +178,9 @@ void miniDNF::Abbreviate(string function(const string &, const string &))
 	{
 		vec_p h;
 		bool flag = false;
-		for (auto i = sdnf.begin(); i != sdnf.end(); i++)
+		for (auto i = adnf.begin(); i != adnf.end(); i++)
 		{
-			for (auto j = i + 1; j != sdnf.end(); ++j)
+			for (auto j = i + 1; j != adnf.end(); ++j)
 			{
 				if (i != j)
 				{
@@ -220,7 +220,7 @@ void miniDNF::Abbreviate(string function(const string &, const string &))
 		}
 		if (flag != true)
 			break;
-		sdnf = h;
+		adnf = h;
 	}
 }
 void miniDNF::InitMat()
@@ -415,7 +415,7 @@ void miniDNF::Solve()
 }
 int main(int argc, char *argv[])
 {
-	miniDNF mdnf = miniDNF("10101110");
+	miniDNF mdnf = miniDNF("1100111101101001");
 	mdnf.Solve();
 	return 0;
 }
