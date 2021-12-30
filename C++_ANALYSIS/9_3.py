@@ -47,7 +47,7 @@ def iterations_2(xmin, xmax, tmax, N):
     return u
 xmin = 0
 xmax = 1
-tmax = 10
+tmax = 0.5
 Z = iterations_1(xmin, xmax, tmax, M)
 #print(Z)
 
@@ -55,7 +55,7 @@ Z = iterations_1(xmin, xmax, tmax, M)
 fig = plt.figure()
 ax3 = plt.axes(projection='3d')
 xx = arange(xmin, xmax, (xmax-xmin)/M)
-yy = arange(xmin, xmax, (xmax-xmin)/M)
+yy = arange(xmin, tmax, (tmax-xmin)/M)
 X, Y = meshgrid(xx, yy)
 ax3.plot_surface(X, Y, Z, cmap='rainbow')
 plt.show()
