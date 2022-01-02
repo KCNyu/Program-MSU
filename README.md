@@ -44,5 +44,5 @@
 #### 2) [UNIX_SYSTEM](./UNIX_SYSTEM)
 补充深化学习操作系统
 
-#### 3) [UNIX_NEXTWORK](./UNIX_NEXTWORK)
+#### 3) [UNIX_NETWORK](./UNIX_NETWORK)
 学习计算机网络相关知识
