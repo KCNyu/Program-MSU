@@ -6,13 +6,10 @@
 
 ### 1、Исходная функция плотности вероятности для случайных данных
 
-$$
-\int_{ - \infty }^{ + \infty } {c*(1+x^4)dx} = \int_{0}^{1} {c*(1+x^4)dx} = 1;
-$$
+![](http://latex.codecogs.com/svg.latex?\int_\{-\infty\}^\{+\infty\}\{c*(1+x^4)dx\}=\int_{0}^{1}{c*(1+x^4)dx}=1)
 
-$$
-c=5/6
-$$
+![](http://latex.codecogs.com/svg.latex?\{c}=5/6)
+
 
 
 
