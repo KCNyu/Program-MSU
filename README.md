@@ -1,5 +1,7 @@
 # 深圳北理莫斯科大学-BMK
-
+[![](https://img.shields.io/github/watchers/KCNyu/Program-MSU-BIT.svg?style=flat)](https://github.com/Program-MSU-BIT/watchers)
+[![](https://img.shields.io/github/stars/Program-MSU-BIT.svg?style=flat)](https://github.com/Program-MSU-BIT/stargazers)
+![](https://img.shields.io/github/repo-size/Program-MSU-BIT.svg?style=flat)
 ## 一、校本课程目录
 
 #### 1) [C_CLASS_TEST](./C_CLASS_TEST) 
