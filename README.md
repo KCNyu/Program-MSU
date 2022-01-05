@@ -31,6 +31,7 @@
 
 #### 7) [C++_PARALLEL](./C++_PARALLEL)
 大四上学期并行程序设计课程相关代码
+附带一个大三下学期论文的报告[Brocard](./C++_PARALLEL/Chapter_BigInteger)
 
 #### 8) [HASKELL_BASIC](./HASKELL_BASIC)
 大三上学期函数式编程相关代码
