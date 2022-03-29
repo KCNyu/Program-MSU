@@ -10,3 +10,6 @@
 [submodule "Chapter_WEB"]
     path = UNIX_NETWORK/Chapter_WEB
     url = https://github.com/KCNyu/HttpWebServer
+[submodule "Shell"]
+    path = C_UNIX/Chapter_SHELL
+    url = https://github.com/KCNyu/Myshell
