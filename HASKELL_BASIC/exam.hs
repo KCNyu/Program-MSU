@@ -18,12 +18,14 @@ find the arithmetic mean and geometric mean of odd numbers.
 -}
 findArtihmeticAndGeometricMean :: [Int] -> (Double, Double)
 findArtihmeticAndGeometricMean [] = (0, 0)
-findArtihmeticAndGeometricMean (x:xs)
-    | odd x = (arithmeticMean, geometricMean)
-    | otherwise = findArtihmeticAndGeometricMean xs
-    where arithmeticMean = fromIntegral (sum (x:xs)) / fromIntegral (length (x:xs))
-          geometricMean = fromIntegral (product (x:xs)) ** (1 / fromIntegral (length (x:xs)))
+findArtihmeticAndGeometricMean (x:xs) = findArtihmeticAndGeometricMean' (x:xs) 0 1 0
 
+
+findArtihmeticAndGeometricMean' :: [Int] -> Double -> Double -> Double -> (Double, Double)
+findArtihmeticAndGeometricMean' [] a g i = (a / i, g ** (1 / i))
+findArtihmeticAndGeometricMean' (x:xs) a g i
+    | odd x = findArtihmeticAndGeometricMean' xs (a + fromIntegral x) (g * fromIntegral x) (i + 1)
+    | otherwise = findArtihmeticAndGeometricMean' xs a g (i+1)
 
 {-
 5. Replace by one the minimum absolute value element of the given array X = (x1, x2, ..., xn). 
@@ -67,7 +69,7 @@ findNumberOfTermEqualToA (x:xs) a
 
 -- Test cases
 test1 = TestCase (assertEqual "findZeroIndex" 4 (findZeroIndex [1, 2, 3, 0, 4, 5, 6, 0, 7, 8, 9, 0]))
-test2 = TestCase (assertEqual "findArtihmeticAndGeometricMean" (5.5,4.528728688116765) (findArtihmeticAndGeometricMean [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
+test2 = TestCase (assertEqual "findArtihmeticAndGeometricMean" (2.5,1.9840069120432398) (findArtihmeticAndGeometricMean [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
 test3 = TestCase (assertEqual "replaceMinAbsoluteValueWithOne" [1,2,3,4,1,6,7,8,1,10] (replaceMinAbsoluteValueWithOne [0, 2, 3, 4, 0, 6, 7, 8, 0, 10]))
 test4 = TestCase (assertEqual "findLongestSequenceOfConsecutiveZeros" 3 (findLongestSequenceOfConsecutiveZeros [1, 2, 3, 0, 0, 5, 6, 0, 0, 0, 9, 0]))
 test5 = TestCase (assertEqual "findNumberOfTermEqualToA" 4 (findNumberOfTermEqualToA [1, 2, 3, 0, 5, 0, 0, 8, 0, 10] 0))
