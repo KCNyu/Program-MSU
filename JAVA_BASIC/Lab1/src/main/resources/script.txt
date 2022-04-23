@@ -1,6 +1,0 @@
-SETNAME HongXiaoyang
-CHANGECOLOR green
-DOWN 7
-RIGHT 5
-UP 4
-LEFT 3
