@@ -68,7 +68,7 @@ public class Client {
             while (true) {
                 SerializableReturn ret = client.sendMessage(new SerializableCommand(carIndex, direction, "1"), session, producer, consumer);
                 System.out.println("ret: " + ret);
-                if ((boolean)ret.ret){
+                if (!(boolean)ret.ret){
                     direction = directions[random.nextInt(4)];
                 }
             }
