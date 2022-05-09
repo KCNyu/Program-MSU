@@ -19,6 +19,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 
 import static car.BasicCarServer.maxCarSecondsDonNotMove;
 
@@ -73,15 +74,17 @@ public class KafkaSimpleClient implements Runnable {
         consumer.subscribe(Arrays.asList(retChannel));
     }
 
-    public String sendCommand(int carIndex, String command) {
-        producer.send(new ProducerRecord<Integer, String>(commandChannel, carIndex, command));
+    public String sendCommand(int carIndex, String command) throws ExecutionException, InterruptedException {
+        producer.send(new ProducerRecord<Integer, String>(commandChannel, carIndex, command)).get();
+        System.out.println("Sending command: " + command);
         while (true) {
-            ConsumerRecords<Integer, String> records = consumer.poll(Long.MAX_VALUE);
+            ConsumerRecords<Integer, String> records = consumer.poll(Duration.ofMillis(100));
             if (records.count() > 0) {
                 for (ConsumerRecord<Integer, String> record : records) {
+                    System.out.println("key = " + record.key() + ", value = " + record.value());
                     if (record.key() == carIndex) {
                         System.out.println(record.key());
-                        //consumer.commitSync();
+                        consumer.commitSync();
                         return record.value();
                     }
                 }
@@ -92,27 +95,34 @@ public class KafkaSimpleClient implements Runnable {
     }
 
     public static void main(String[] args) throws InterruptedException {
-        new Thread(new KafkaSimpleClient("LSY-3")).start();
+        new Thread(new KafkaSimpleClient("LSY-111")).start();
         //new Thread(new KafkaSimpleClient("LSY-2")).start();
     }
 
     @Override
     public void run() {
-        Random random = new Random();
-        int carIndex = random.nextInt(Integer.MAX_VALUE);
-        String res = sendCommand(carIndex, "CREATECAR");
-        System.out.println(res);
-        carIndex = Integer.parseInt(res);
-        System.out.println("carIndex: " + carIndex);
-        sendCommand(carIndex, "SETNAME LSY");
-        String direction = "DOWN 1";
-        String[] commands = {"UP 1", "DOWN 1", "LEFT 1", "RIGHT 1"};
-        while (true) {
-            res = sendCommand(carIndex, direction);
-            System.out.println("res: " + res);
-            if (res != "true") {
-                direction = commands[random.nextInt(4)];
+        try {
+
+            Random random = new Random();
+            int carIndex = random.nextInt(Integer.MAX_VALUE);
+            String res = sendCommand(carIndex, "CREATECAR");
+            System.out.println(res);
+            carIndex = Integer.parseInt(res);
+            System.out.println("carIndex: " + carIndex);
+            sendCommand(carIndex, "SETNAME LSY");
+            String direction = "DOWN 1";
+            String[] commands = {"UP 1", "DOWN 1", "LEFT 1", "RIGHT 1"};
+            while (true) {
+                res = sendCommand(carIndex, direction);
+                System.out.println("res: " + res);
+                if (!Boolean.parseBoolean(res)) {
+                    direction = commands[random.nextInt(4)];
+                    System.out.println("direction changed to: " + direction);
+                }
+                System.out.println("direction: " + direction);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
