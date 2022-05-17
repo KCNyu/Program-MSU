@@ -39,7 +39,10 @@
         * *Abramyan M.E.*
     * [JAVA_BASIC](./JAVA_BASIC)
         * 分布式系统
-        * *SvistunovA.N.*
+        * *Svistunov A.N.*
+    * [GRAPHIC_BASIC](./GRAPHIC_BASIC)
+        * 图形学
+        * *Boreskov A.V.*
 
 ## 二、附录
 《深圳北理莫斯科大学学生纪律处分条例》
