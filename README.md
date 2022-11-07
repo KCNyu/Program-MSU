@@ -45,6 +45,9 @@
         * *Boreskov A.V.*
 
 * ### **研一课程**
+    * [C++_CAIS](./C++_CAIS)
+        * 代码分析和信息安全
+        * *Solovyov M.A.*
     * [C++_HPC](./C++_HPC)
         * 并行高性能计算
         * *Yakobovsky M.V Zhukov K.A.*
