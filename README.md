@@ -50,7 +50,7 @@
         * *Solovyov M.A.*
     * [C++_HPC](./C++_HPC)
         * 并行高性能计算
-        * *Yakobovsky M.V Zhukov K.A.*
+        * *Yakobovsky M.V. Zhukov K.A.*
 
 ## 二、附录
 《深圳北理莫斯科大学学生纪律处分条例》
