@@ -1,4 +1,4 @@
-# 深圳北理莫斯科大学-BMK
+# 深圳北理莫斯科大学「莫斯科国立大学系统编程教研室」-BMK
 [![](https://img.shields.io/github/watchers/KCNyu/Program-MSU-BIT.svg?style=flat)](https://github.com/KCNyu/Program-MSU-BIT/watchers)
 [![](https://img.shields.io/github/stars/KCNyu/Program-MSU-BIT.svg?style=flat)](https://github.com/KCNyu/Program-MSU-BIT/stargazers)
 ![](https://img.shields.io/github/repo-size/KCNyu/Program-MSU-BIT.svg?style=flat)
@@ -43,6 +43,11 @@
     * [GRAPHIC_BASIC](./GRAPHIC_BASIC)
         * 图形学
         * *Boreskov A.V.*
+
+* ### **研一课程**
+    * [C++_HPC](./C++_HPC)
+        * 并行高性能计算
+        * *Yakobovsky M.V Zhukov K.A.*
 
 ## 二、附录
 《深圳北理莫斯科大学学生纪律处分条例》
