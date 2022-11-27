@@ -60,4 +60,5 @@ dkms.conf
 *.iws 
 *.idea 
 
-### Java template
+# Mac OS X Files
+.DS_Store
