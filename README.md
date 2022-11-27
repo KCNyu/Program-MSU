@@ -45,7 +45,7 @@
         * *Boreskov A.V.*
 
 * ### **研一课程**
-    * [C++_CAIS](./C++_CAIS)
+    * [C++_AIS](./C++_AIS)
         * 代码分析和信息安全
         * *Solovyov M.A.*
     * [C++_HPC](./C++_HPC)
