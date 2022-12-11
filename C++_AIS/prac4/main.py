@@ -73,7 +73,7 @@ def from_reg(reg) -> TaintItem:
                     coverage = set()
                     for i in range(reg[1], reg[1]+reg[2]):
                         coverage.add(i)
-                    return TaintItem("reg", coverage)
+                    return TaintItem(k, coverage)
 
 
 def from_array(array: list) -> TaintItem:
