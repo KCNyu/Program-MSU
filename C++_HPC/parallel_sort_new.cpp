@@ -90,19 +90,7 @@ private:
     int n1, n2;
     int total;
 
-public:
-    Task(const int n1, const int n2) : n1(n1), n2(n2), total(n1 * n2)
-    {
-        if (procSize == 1)
-        {
-            points = randomPoints(0, total);
-        }
-        else
-        {
-            int arrSz = ceil(static_cast<double>(total) / procSize);
-            points = randomPoints(procRank * arrSz, arrSz);
-        }
-    }
+protected:
     vector<Point> randomPoints(int start, int arrSz)
     {
         srand(time(NULL) + start);
@@ -250,7 +238,8 @@ public:
     void runParallel()
     {
         commitPointType(pointType);
-
+        
+        MPI_Barrier(MPI_COMM_WORLD);
         double startTime = MPI_Wtime();
         parallelSort();
         double procExecutionTime = MPI_Wtime() - startTime;
@@ -260,6 +249,20 @@ public:
         Test test(points);
         test.run();
         MPI_Type_free(&pointType);
+    }
+
+public:
+    Task(const int n1, const int n2) : n1(n1), n2(n2), total(n1 * n2)
+    {
+        if (procSize == 1)
+        {
+            points = randomPoints(0, total);
+        }
+        else
+        {
+            int arrSz = ceil(static_cast<double>(total) / procSize);
+            points = randomPoints(procRank * arrSz, arrSz);
+        }
     }
     void run()
     {
