@@ -103,8 +103,6 @@ def to_list_taintItem(taint) -> list[TaintItem]:
 def contains(source: list[TaintItem], target: list[TaintItem]) -> bool:
     if source == [] or target == []:
         return False
-    if source is None or target is None:
-        return False
     for target_item in target:
         for source_item in source:
             if source_item is None or target_item is None:
@@ -116,12 +114,12 @@ def contains(source: list[TaintItem], target: list[TaintItem]) -> bool:
 
 
 def add_taint(curr_taint: list[TaintItem], taint: TaintItem):
+    if taint is None:
+        return
     if curr_taint == []:
         curr_taint.append(taint)
         return
     for item in curr_taint:
-        if item is None or taint is None:
-            continue
         if item.name == taint.name:
             item.coverage.update(taint.coverage)
             return
@@ -154,11 +152,27 @@ def from_taintItems(curr_taint: list[TaintItem]) -> list:
         if item is None:
             continue
         if item.name == "array":
-            sorted_coverage = set(sorted(item.coverage))
+            sorted_coverage = sorted(item.coverage)
             # split with consecutive numbers
-            for k, g in groupby(enumerate(sorted_coverage), lambda x: x[0] - x[1]):
-                group = list(map(itemgetter(1), g))
-                output.append([group[0], len(group)])
+            if len(sorted_coverage) == 0:
+                continue
+            if len(sorted_coverage) == 1:
+                output.append([sorted_coverage[0], 1])
+                continue
+            consecutive = []
+            for index in range(1, len(sorted_coverage)):
+                if sorted_coverage[index] - sorted_coverage[index-1] == 1:
+                    consecutive.append(sorted_coverage[index-1])
+                else:
+                    consecutive.append(sorted_coverage[index-1])
+                    output.append(
+                        [min(consecutive), len(consecutive)])
+                    consecutive = []
+                if index == len(sorted_coverage)-1:
+                    consecutive.append(sorted_coverage[index])
+                    output.append(
+                        [min(consecutive), len(consecutive)])
+
         elif registers.get(item.name) is not None:
             flag = False
             for reg_k, reg_v in registers[item.name].items():
@@ -179,10 +193,16 @@ def from_taintItems(curr_taint: list[TaintItem]) -> list:
     return output
 
 
+def to_output(curr_taint: list[TaintItem], step: int) -> dict:
+    out_item = {}
+    out_item["step"] = step
+    out_item["answer"] = from_taintItems(curr_taint)
+    return out_item
+
+
 def taint(origin_data: dict, test_data: dict) -> list:
     output = []
     curr_taint = []
-    flag = False
     for index, test_item in enumerate(test_data):
         if test_item["type"] == "source":
             tmp = to_list_taintItem(test_item["taint"])
@@ -190,16 +210,8 @@ def taint(origin_data: dict, test_data: dict) -> list:
         elif index - 1 >= 0:
             fr = test_data[index - 1]["step"] - 1
             to = test_data[index]["step"] - 1
-            if flag:
+            if fr + 1 == test_data[0]["step"]:
                 fr += 1
-                flag = False
-            if test_data[index - 1]["step"] == test_data[index]["step"]:
-                flag = True
-                out_item = {}
-                out_item["step"] = test_item["step"]
-                out_item["answer"] = from_taintItems(curr_taint)
-                output.append(out_item)
-                continue
             for i in range(fr, to + 1):
                 item = origin_data[i]
                 read_reg = to_list_taintItem(item["readRegs"])
@@ -212,10 +224,7 @@ def taint(origin_data: dict, test_data: dict) -> list:
                 elif item["text"].find("mov") != -1:
                     remove_list_taint(curr_taint, wirte_reg)
                     remove_list_taint(curr_taint, write_mem)
-            out_item = {}
-            out_item["step"] = test_item["step"]
-            out_item["answer"] = from_taintItems(curr_taint)
-            output.append(out_item)
+            output.append(to_output(curr_taint, test_item["step"]))
     return output
 
 
