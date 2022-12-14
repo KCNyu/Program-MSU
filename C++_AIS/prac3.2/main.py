@@ -1,6 +1,4 @@
-from itertools import groupby
 import json
-from operator import itemgetter
 import sys
 
 
@@ -203,15 +201,21 @@ def to_output(curr_taint: list[TaintItem], step: int) -> dict:
 def taint(origin_data: dict, test_data: dict) -> list:
     output = []
     curr_taint = []
+    flag = False
     for index, test_item in enumerate(test_data):
         if test_item["type"] == "source":
             tmp = to_list_taintItem(test_item["taint"])
             add_list_taint(curr_taint, tmp)
         elif index - 1 >= 0:
+            if test_data[index - 1]["type"] == "source" and test_data[index - 1]["step"] == test_data[index]["step"]:
+                output.append(to_output(curr_taint, test_item["step"]))
+                flag = True
+                continue
             fr = test_data[index - 1]["step"] - 1
             to = test_data[index]["step"] - 1
-            if fr + 1 == test_data[0]["step"]:
+            if flag or fr + 1 == test_data[0]["step"]:
                 fr += 1
+                flag = False
             for i in range(fr, to + 1):
                 item = origin_data[i]
                 read_reg = to_list_taintItem(item["readRegs"])
@@ -224,6 +228,8 @@ def taint(origin_data: dict, test_data: dict) -> list:
                 elif item["text"].find("mov") != -1:
                     remove_list_taint(curr_taint, wirte_reg)
                     remove_list_taint(curr_taint, write_mem)
+            output.append(to_output(curr_taint, test_item["step"]))
+        else:
             output.append(to_output(curr_taint, test_item["step"]))
     return output
 
