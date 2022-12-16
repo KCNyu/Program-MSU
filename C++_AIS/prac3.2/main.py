@@ -197,6 +197,14 @@ def to_output(curr_taint: list[TaintItem], step: int) -> dict:
     out_item["answer"] = from_taintItems(curr_taint)
     return out_item
 
+# contains only mov, cmov, movz, movs
+def contains_mov(text: str) -> bool:
+    if text == "":
+        return False
+    text = text.split(" ")
+    if text[0] in ["mov", "cmov", "movz", "movs"]:
+        return True
+    return False
 
 def taint(origin_data: dict, test_data: dict) -> list:
     output = []
@@ -225,7 +233,7 @@ def taint(origin_data: dict, test_data: dict) -> list:
                 if contains(read_reg, curr_taint) or contains(read_mem, curr_taint):
                     add_list_taint(curr_taint, wirte_reg)
                     add_list_taint(curr_taint, write_mem)
-                elif item["text"].find("mov") != -1:
+                elif contains_mov(item["text"]):
                     remove_list_taint(curr_taint, wirte_reg)
                     remove_list_taint(curr_taint, write_mem)
             output.append(to_output(curr_taint, test_item["step"]))
