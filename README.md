@@ -51,6 +51,9 @@
     * [C++_HPC](./C++_HPC)
         * 并行高性能计算
         * *Yakobovsky M.V. Zhukov K.A.*
+    * [PYTHON_BASIC](./PYTHON_BASIC/)
+        * Python编程和数据分析基础
+        * *Khiryanov T.F.*
 
 ## 二、附录
 《深圳北理莫斯科大学学生纪律处分条例》
