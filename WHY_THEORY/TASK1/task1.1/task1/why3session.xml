@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE why3session PUBLIC "-//Why3//proof session v5//EN"
+"http://why3.lri.fr/why3session.dtd">
+<why3session shape_version="4">
+<prover id="0" name="CVC4" version="1.7" timelimit="5" steplimit="0" memlimit="1000"/>
+<file name="../task1.why" expanded="true">
+<theory name="Task1" sum="16435a5994f38a7aabb6bca6f671dd59" expanded="true">
+ <goal name="partiallyCorrectT1" expl="" expanded="true">
+ <proof prover="0"><result status="valid" time="0.02" steps="876"/></proof>
+ </goal>
+ <goal name="FullyCorrectT1" expl="" expanded="true">
+ <proof prover="0"><result status="valid" time="0.01" steps="873"/></proof>
+ </goal>
+ <goal name="partiallyCorrectT2" expl="" expanded="true">
+ <proof prover="0"><result status="valid" time="0.01" steps="876"/></proof>
+ </goal>
+</theory>
+</file>
+</why3session>

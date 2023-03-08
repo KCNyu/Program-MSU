@@ -1,0 +1,67 @@
+theory Task1 "z = x2 + x1 - x3"
+    use import int.Int
+    predicate in_range(x: int) =
+        x >= (-2147483648) && x <= 2147483647
+
+    goal partiallyCorrectT1:
+        forall x1 : int, x2 : int, x3 : int.
+        (
+            in_range(x1) /\
+            in_range(x2) /\
+            in_range(x3) /\
+            in_range(x1 - x3) /\
+            in_range(x2 + x1 - x3) 
+        )
+        /\
+        (
+            in_range(x1 - x3) /\
+            in_range(x2 + x1 - x3)
+        )
+        ->
+        (
+            ((x2 + (x1 - x3)) = (x2 + (x1 - x3))) /\
+            in_range(x1 - x3) /\
+            in_range(x2 + x1 - x3)
+        )
+    
+    goal FullyCorrectT1:
+        forall x1 : int, x2 : int, x3 : int.
+        (
+            in_range(x1) /\
+            in_range(x2) /\
+            in_range(x3) /\
+            in_range(x1 - x3) /\
+            in_range(x2 + x1 - x3)
+        )
+        ->
+        (
+            in_range(x1 - x3) /\
+            in_range(x2 + x1 - x3)
+        )
+        /\
+        (
+            ((x2 + (x1 - x3)) = (x2 + (x1 - x3))) /\
+            in_range(x1 - x3) /\
+            in_range(x2 + x1 - x3)
+        )
+
+    goal partiallyCorrectT2:
+        forall x1 : int, x2 : int, x3 : int.
+        (
+            in_range(x1) /\
+            in_range(x2) /\
+            in_range(x3) /\
+            in_range(x2 + x1 - x3) 
+        )
+        /\
+        (
+            in_range(x1 - x3) /\
+            in_range(x2 + x1 - x3)
+        )
+        ->
+        (
+            ((x2 + (x1 - x3)) = (x2 + (x1 - x3))) /\
+            in_range(x1 - x3) /\
+            in_range(x2 + x1 - x3)
+        )
+end
