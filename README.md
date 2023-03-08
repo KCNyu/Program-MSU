@@ -54,6 +54,9 @@
     * [PYTHON_BASIC](./PYTHON_BASIC/)
         * Python编程和数据分析基础
         * *Khiryanov T.F.*
+    * [WHY_THEORY](./WHY_THEORY/)
+        * C程序的形式化验证
+        * *Kornikhin E.B.*
 
 ## 二、附录
 《深圳北理莫斯科大学学生纪律处分条例》
