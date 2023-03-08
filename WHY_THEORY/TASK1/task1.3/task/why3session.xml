@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE why3session PUBLIC "-//Why3//proof session v5//EN"
+"http://why3.lri.fr/why3session.dtd">
+<why3session shape_version="4">
+<prover id="0" name="CVC4" version="1.7" timelimit="5" steplimit="0" memlimit="1000"/>
+<file name="../task.why" expanded="true">
+<theory name="Task" sum="eaeb7c3d2a5ace105a33fbe0c9935ca2" expanded="true">
+ <goal name="SA" expl="" expanded="true">
+ <proof prover="0"><result status="valid" time="0.01" steps="471"/></proof>
+ </goal>
+ <goal name="ATA" expl="" expanded="true">
+ <proof prover="0"><result status="valid" time="0.02" steps="1052"/></proof>
+ </goal>
+ <goal name="AFTA" expl="" expanded="true">
+ <proof prover="0"><result status="valid" time="0.04" steps="5825"/></proof>
+ </goal>
+ <goal name="ATAU" expl="" expanded="true">
+ <proof prover="0"><result status="valid" time="0.01" steps="830"/></proof>
+ </goal>
+ <goal name="AFTAU" expl="" expanded="true">
+ <proof prover="0"><result status="valid" time="0.02" steps="3768"/></proof>
+ </goal>
+ <goal name="W" expl="" expanded="true">
+ <proof prover="0"><result status="valid" time="0.29" steps="34066"/></proof>
+ </goal>
+</theory>
+</file>
+</why3session>

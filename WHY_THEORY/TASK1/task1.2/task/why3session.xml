@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE why3session PUBLIC "-//Why3//proof session v5//EN"
+"http://why3.lri.fr/why3session.dtd">
+<why3session shape_version="4">
+<prover id="0" name="CVC4" version="1.7" timelimit="5" steplimit="0" memlimit="1000"/>
+<file name="../task.why" expanded="true">
+<theory name="Task" sum="d4c0e1e4d4f67145f60a53e6686646b6" expanded="true">
+ <goal name="SA" expl="" expanded="true">
+ <proof prover="0"><result status="valid" time="0.01" steps="278"/></proof>
+ </goal>
+ <goal name="ATH" expl="" expanded="true">
+ <proof prover="0"><result status="valid" time="0.01" steps="746"/></proof>
+ </goal>
+ <goal name="AFA" expl="" expanded="true">
+ <proof prover="0"><result status="valid" time="0.01" steps="638"/></proof>
+ </goal>
+</theory>
+</file>
+</why3session>

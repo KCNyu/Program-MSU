@@ -1,0 +1,39 @@
+theory Task
+    use import int.Int
+
+    function cube(x: int) : int =
+        x * x * x
+
+    predicate p (x : int) (y1 : int) (y2 : int) (y3 : int) =
+        (x >= cube(y1)) /\ 
+        (y2 = cube(y1+1)) /\
+        (y3 = cube(y1+1) - (cube(y1)))
+
+    goal SA:
+        forall x : int, y1 : int, y2 : int, y3 : int.
+        (x >= 0) -> (p x 0 1 1)
+
+    goal ATH:
+        forall x : int, y1 : int, y2 : int, y3 : int.
+        (
+            (x >= 0) /\ 
+            (p x y1 y2 y3) /\ 
+            (y2 > x) 
+        )
+        -> 
+        (
+            x >= cube(y1) /\
+            x < cube(y1+1)
+        )
+    goal AFA:
+        forall x : int, y1 : int, y2 : int, y3 : int.
+        (
+            (x >= 0) /\ 
+            (p x y1 y2 y3) /\ 
+            (y2 <= x) 
+        )
+        -> 
+        (
+            (p x (y1 + 1) (y2 + y3 + 6 * y1 + 6) (y3 + 6 * y1 + 6))
+        )
+end
