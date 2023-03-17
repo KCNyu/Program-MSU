@@ -57,6 +57,9 @@
     * [WHY_THEORY](./WHY_THEORY/)
         * C程序的形式化验证
         * *Kornikhin E.B.*
+    * [MODEL_CHECKING](./MODEL_CHECKING/)
+        * 程序模型验证
+        * *Kamkin A.S.*
 
 ## 二、附录
 《深圳北理莫斯科大学学生纪律处分条例》
