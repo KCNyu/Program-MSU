@@ -1,0 +1,40 @@
+module Task
+    use import int.Int
+    use import int.EuclideanDivision
+
+    function pow_1 (base: int) (exponent: int): int =  
+        if exponent = 0 then 1
+        else base * pow_1 base (exponent - 1)
+
+    function pow_2 (base: int) (exponent: int): int = 
+        if exponent = 0 then 1
+        else if mod exponent 2 = 1 then base * pow_2 base (exponent - 1)
+        else let x = pow_2 base (div exponent 2) in x * x
+
+    (* without this cannot prove property_1 by using cvc4 *)
+    (* axiom pow_1_minus_1:
+        forall base: int, exponent: int. 
+            pow_1 base exponent = base * pow_1 base (exponent - 1) *)
+        
+    (* without this cannot prove property_2 by using alg-ergo *)
+    (* actually this can use as lemma instead of axiom which will help to prove the property_2 
+    but the lemma itself cannot be proved...so weird *)
+    axiom pow_2_minus_1:
+        forall base: int, exponent: int. 
+            pow_2 base exponent = base * pow_2 base (exponent - 1)
+
+    let rec property_1 (n: int) : bool
+        requires { n >= 0 }
+        ensures { result = (mod (pow_1 2 (3 * n) - pow_1 3 n) 5 = 0) }
+    = 
+        if n = 0 then (mod (1 - 1) 5 = 0) 
+        else property_1 (n - 1)
+    
+    let rec property_2 (n: int) : bool
+        requires { n >= 0 }
+        ensures { result = (mod (pow_2 2 (3 * n) - pow_2 3 n) 5 = 0) }
+    = 
+        if n = 0 then (mod (1 - 1) 5 = 0) 
+        else property_2 (n - 1)
+
+end

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE why3session PUBLIC "-//Why3//proof session v5//EN"
+"http://why3.lri.fr/why3session.dtd">
+<why3session shape_version="4">
+<prover id="0" name="Alt-Ergo" version="2.4.2" timelimit="5" steplimit="0" memlimit="1000"/>
+<file name="../task.mlw" expanded="true">
+<theory name="Task" sum="c7576cb305d0d353a0c131db8bc1e33a" expanded="true">
+ <goal name="WP_parameter property_1" expl="VC for property_1" expanded="true">
+ <proof prover="0"><result status="valid" time="0.04" steps="645"/></proof>
+ </goal>
+ <goal name="WP_parameter property_2" expl="VC for property_2" expanded="true">
+ <proof prover="0"><result status="valid" time="0.19" steps="5968"/></proof>
+ </goal>
+</theory>
+</file>
+</why3session>
