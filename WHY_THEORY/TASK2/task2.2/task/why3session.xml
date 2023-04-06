@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE why3session PUBLIC "-//Why3//proof session v5//EN"
+"http://why3.lri.fr/why3session.dtd">
+<why3session shape_version="4">
+<prover id="0" name="Alt-Ergo" version="2.4.2" timelimit="5" steplimit="0" memlimit="1000"/>
+<file name="../task.mlw" expanded="true">
+<theory name="SetVer" sum="0abdffb06397f708dfcfde4597dc5217" expanded="true">
+ <goal name="contains_empty" expl="" expanded="true">
+ <proof prover="0"><result status="valid" time="0.00" steps="2"/></proof>
+ </goal>
+</theory>
+<theory name="SetTask" sum="9107acd1eaf14a596dcfae19a521c6c7" expanded="true">
+ <goal name="WP_parameter full_set_spec" expl="VC for full_set_spec" expanded="true">
+ <proof prover="0"><result status="valid" time="0.00" steps="9"/></proof>
+ </goal>
+ <goal name="WP_parameter add_remove_spec" expl="VC for add_remove_spec" expanded="true">
+ <proof prover="0"><result status="valid" time="0.00" steps="8"/></proof>
+ </goal>
+ <goal name="WP_parameter min_elem_spec" expl="VC for min_elem_spec" expanded="true">
+ <proof prover="0"><result status="valid" time="0.00" steps="6"/></proof>
+ </goal>
+ <goal name="WP_parameter is_prime_spec" expl="VC for is_prime_spec" expanded="true">
+ <transf name="split_goal_wp" expanded="true">
+  <goal name="WP_parameter is_prime_spec.1" expl="assertion">
+  <proof prover="0"><result status="valid" time="0.00" steps="2"/></proof>
+  </goal>
+  <goal name="WP_parameter is_prime_spec.2" expl="assertion">
+  <proof prover="0"><result status="valid" time="0.00" steps="5"/></proof>
+  </goal>
+  <goal name="WP_parameter is_prime_spec.3" expl="assertion">
+  <proof prover="0"><result status="valid" time="0.00" steps="10"/></proof>
+  </goal>
+  <goal name="WP_parameter is_prime_spec.4" expl="assertion">
+  <proof prover="0"><result status="valid" time="0.00" steps="24"/></proof>
+  </goal>
+  <goal name="WP_parameter is_prime_spec.5" expl="assertion">
+  <proof prover="0"><result status="valid" time="0.00" steps="66"/></proof>
+  </goal>
+  <goal name="WP_parameter is_prime_spec.6" expl="assertion">
+  <proof prover="0"><result status="valid" time="0.00" steps="125"/></proof>
+  </goal>
+  <goal name="WP_parameter is_prime_spec.7" expl="assertion">
+  <proof prover="0"><result status="valid" time="0.07" steps="3788"/></proof>
+  </goal>
+  <goal name="WP_parameter is_prime_spec.8" expl="assertion">
+  <proof prover="0"><result status="valid" time="0.01" steps="344"/></proof>
+  </goal>
+  <goal name="WP_parameter is_prime_spec.9" expl="assertion">
+  <proof prover="0"><result status="valid" time="0.20" steps="12320"/></proof>
+  </goal>
+  <goal name="WP_parameter is_prime_spec.10" expl="assertion">
+  <proof prover="0"><result status="valid" time="0.43" steps="25415"/></proof>
+  </goal>
+  <goal name="WP_parameter is_prime_spec.11" expl="assertion">
+  <proof prover="0"><result status="valid" time="0.91" steps="47722"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="WP_parameter is_prime_set_spec" expl="VC for is_prime_set_spec" expanded="true">
+ <proof prover="0"><result status="valid" time="0.01" steps="352"/></proof>
+ </goal>
+ <goal name="WP_parameter is_prime_set_spec2" expl="VC for is_prime_set_spec2" expanded="true">
+ <proof prover="0"><result status="valid" time="0.00" steps="35"/></proof>
+ </goal>
+ <goal name="WP_parameter sieve_spec" expl="VC for sieve_spec" expanded="true">
+ <proof prover="0"><result status="valid" time="0.01" steps="111"/></proof>
+ </goal>
+ <goal name="WP_parameter eratosthenes" expl="VC for eratosthenes" expanded="true">
+ <transf name="split_goal_wp" expanded="true">
+  <goal name="WP_parameter eratosthenes.1" expl="postcondition">
+  <proof prover="0"><result status="valid" time="0.00" steps="19"/></proof>
+  </goal>
+  <goal name="WP_parameter eratosthenes.2" expl="loop invariant init">
+  <proof prover="0"><result status="valid" time="0.01" steps="211"/></proof>
+  </goal>
+  <goal name="WP_parameter eratosthenes.3" expl="loop invariant init">
+  <proof prover="0"><result status="valid" time="0.00" steps="23"/></proof>
+  </goal>
+  <goal name="WP_parameter eratosthenes.4" expl="loop invariant init">
+  <proof prover="0"><result status="valid" time="0.00" steps="41"/></proof>
+  </goal>
+  <goal name="WP_parameter eratosthenes.5" expl="loop invariant init">
+  <proof prover="0"><result status="valid" time="0.00" steps="28"/></proof>
+  </goal>
+  <goal name="WP_parameter eratosthenes.6" expl="precondition">
+  <proof prover="0"><result status="valid" time="0.00" steps="15"/></proof>
+  </goal>
+  <goal name="WP_parameter eratosthenes.7" expl="loop invariant preservation">
+  <proof prover="0"><result status="valid" time="0.00" steps="33"/></proof>
+  </goal>
+  <goal name="WP_parameter eratosthenes.8" expl="loop invariant preservation">
+  <proof prover="0"><result status="valid" time="0.00" steps="28"/></proof>
+  </goal>
+  <goal name="WP_parameter eratosthenes.9" expl="loop invariant preservation">
+  <proof prover="0"><result status="valid" time="0.00" steps="26"/></proof>
+  </goal>
+  <goal name="WP_parameter eratosthenes.10" expl="loop invariant preservation">
+  <proof prover="0"><result status="valid" time="0.00" steps="24"/></proof>
+  </goal>
+  <goal name="WP_parameter eratosthenes.11" expl="loop variant decrease">
+  <proof prover="0"><result status="valid" time="0.00" steps="25"/></proof>
+  </goal>
+  <goal name="WP_parameter eratosthenes.12" expl="postcondition">
+  <proof prover="0"><result status="valid" time="0.00" steps="38"/></proof>
+  </goal>
+ </transf>
+ </goal>
+ <goal name="WP_parameter eratosthenes_spec" expl="VC for eratosthenes_spec" expanded="true">
+ <proof prover="0"><result status="valid" time="0.01" steps="147"/></proof>
+ </goal>
+</theory>
+</file>
+</why3session>

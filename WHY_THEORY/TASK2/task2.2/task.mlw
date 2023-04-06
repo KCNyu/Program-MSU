@@ -1,0 +1,230 @@
+module SetVer
+	type set 'a
+
+	use import int.Int
+	use import ref.Ref
+	
+	predicate contains (self : set 'a) (item : 'a)
+
+	constant empty : set 'a
+
+	(* empty *)
+	predicate is_empty (s: set 'a) = forall x: 'a. not (contains s x)
+	
+	axiom empty_def: is_empty (empty : set 'a) <-> true
+
+	axiom contains_empty_def:
+        forall x : 'a.
+            forall s : set 'a.
+                (s = empty) ->
+                    (contains (s) x) <-> false
+	
+	lemma contains_empty: forall x:'a. contains empty x <-> false
+	
+	(* add *)
+	function add (self : set 'a) (item : 'a) : set 'a
+	
+	axiom add_def:
+		forall x y: 'a. 
+		 	forall s: set 'a.
+				contains (add (s) y) x <-> (x = y \/ contains (s) x)
+
+	
+	(* remove *)
+	function remove (self : set 'a) (item : 'a) : set 'a
+	axiom remove_def:
+		forall x y: 'a, s: set 'a.
+			contains (remove (s) y) x <-> (x <> y /\ contains (s) x)
+
+	(* length *)
+	function length (s: set 'a) : int
+
+	axiom length_nonneg_def: 
+		forall s: set 'a. 
+			true -> length(s) >= 0
+	
+	axiom length_empty_def:
+    	forall s: set 'a. 
+			length s = 0 <-> is_empty s
+
+	axiom length_add_def:
+		forall x: 'a.
+			forall s: set 'a.
+			not (contains s x) -> length (add s x) = 1 + length s
+	
+	axiom length_remove_def:
+		forall x: 'a.
+			forall s: set 'a.
+				contains s x -> length s = 1 + length (remove s x)
+	
+	val add (self : ref (set 'a)) (item: 'a) : unit 
+		requires {not (contains !self item) }
+        ensures {!self = (add (old !self) item)}
+
+   	val remove (self : ref (set 'a)) (item: 'a) : unit 
+        ensures {!self = (remove (old !self) item)}
+end
+
+module SetTask
+	use import SetVer
+	use import int.Int
+	use import int.EuclideanDivision
+	use import ref.Ref
+
+	(* fullset *)
+	function full_set (sz : int) : set int
+	axiom full_set_def : 
+		forall i, sz : int. contains (full_set (sz)) i <-> (0 <= i <= sz)
+
+	axiom length_fullset:
+    	forall n: int. 
+			length (full_set n) = if n >= 0 then n + 1 else 0
+
+	let full_set_spec(): unit = 
+		let s = full_set (5) in
+		assert { contains s 0 };
+		assert { contains s 1 };
+		assert { contains s 2 };
+		assert { contains s 3 };
+		assert { contains s 4 };
+		assert { contains s 5 };
+		assert { not (contains s 6) };
+		assert { not (contains s (-1)) }
+
+	let add_remove_spec(): unit =
+		let s = ref(empty: set int) in
+		add s 2;
+		assert { contains !s 2 };
+		assert { not (contains !s 3 )};
+		add s 3;
+		assert { contains !s 3 };
+		assert { not (contains !s 2 )}
+
+	(* min_elem *)
+	function min_elem (s : set int) : int
+	
+	axiom min_elm_def1:
+    	forall s: set int. not (is_empty s) -> contains s (min_elem s)
+  	axiom min_elm_def2:
+    	forall s: set int. not (is_empty s) -> forall x: int. contains s x -> min_elem s <= x
+	axiom min_full_set_def:
+		forall sz: int. min_elem(full_set(sz)) = 0
+
+	let min_elem_spec(): unit = 
+		let s = full_set (10) in
+		let res = min_elem(s) in
+		let l = length s in
+		assert { res = 0 };
+		assert {l = 11 }
+
+	(* actually should use sqrt as upbound *)
+	predicate is_prime (x : int) = 
+		x >= 2 /\ forall i: int. (1 < i < x) -> not (mod x i = 0)
+
+	let is_prime_spec():unit = 
+		assert { not (is_prime 0) };
+		assert { not (is_prime 1) };
+		assert { is_prime 2 };
+		assert { is_prime 3 };
+		assert { not (is_prime 4) };
+		assert { is_prime 5 };
+		assert { not (is_prime 6) };
+		assert { is_prime 7 };
+		assert { not (is_prime 8) };
+		assert { not (is_prime 9) };
+		assert { not (is_prime 10) }
+	
+	predicate is_prime_set (s : set int) (sz: int) = 
+		forall i: int. i <= sz /\ is_prime i <-> contains s i
+	
+	let is_prime_set_spec(): unit =
+		let s = ref (full_set (10)) in
+		remove s 0;
+		remove s 1;
+		remove s 4;
+		remove s 6;
+		remove s 8;
+		remove s 9;
+		remove s 10;
+		assert { contains !s 2 };
+		assert { contains !s 3 };
+		assert { contains !s 5 };
+		assert { contains !s 7 };
+		assert {is_prime_set !s 10}
+	
+	let is_prime_set_spec2() : unit =
+		let s = ref(empty) in
+		add s 2;
+		add s 3;
+		add s 5;
+		add s 7;
+		add s 4;
+		assert {not (is_prime_set (!s) 10) }
+
+	function sieve (s: set int) (x :int) (sz : int): set int 
+
+	axiom sieve_axiom:
+		forall s: set int, x :int, sz : int.
+			2 <= x < sz ->
+			let result = sieve s x sz in
+			(forall i: int. 0 <= i <= sz /\ mod i x = 0 -> not (contains result i)) &&
+			(forall i: int. 0 <= i <= sz /\ not (mod i x = 0) /\ contains s i -> contains result i) &&
+			(forall i: int. i > sz -> not (contains result i))
+	
+			
+	let sieve_spec(): unit =
+		let s = full_set (10) in
+		let res = ref(sieve (s) 2 10) in
+		remove res 1;
+		add res 2;
+		res := sieve (!res) 3 10;
+		add res 3;
+		res := sieve (!res) 5 10;
+		add res 5;
+		assert { contains (!res) 2 };
+		assert { contains (!res) 3 };
+		assert { contains (!res) 5 };
+		assert { contains (!res) 7 };
+		assert { not (contains (!res) 0) };
+		assert { not (contains (!res) 1) };
+		assert { not (contains (!res) 4) };
+		assert { not (contains (!res) 6) };
+		assert { not (contains (!res) 8) };
+		assert { not (contains (!res) 9) };
+		assert { not (contains (!res) 10) };
+		assert { not (contains (!res) 11) };
+		assert { is_prime_set (!res) 10}
+
+
+	let eratosthenes(sz: int): set int 
+		requires { sz >= 0 }
+		ensures { is_prime_set (result) sz }
+	= 
+	if sz < 2 then empty 
+	else
+	let nums = ref (full_set (sz)) in
+	remove nums 0;
+	remove nums 1;
+
+	let primes = ref empty in
+	while not (is_empty !nums) do
+		invariant { forall n k: int. contains !nums n /\ 2 <= k /\ mod k n = 0 -> contains !nums k }
+		invariant { forall n:   int. is_prime (n) /\ n <= sz -> contains (!primes) n  \/ contains (!nums) n }
+		invariant { forall n:   int. contains !primes n <-> is_prime n /\ n <= sz } 
+		invariant { forall n:   int. contains !nums n -> 2 <= n <= sz }
+		variant { length !nums }
+		let p = min_elem (!nums) in
+		add primes p;
+		nums := sieve !nums p sz
+	done;
+	!primes
+
+	let eratosthenes_spec():unit = 
+	let s = eratosthenes(10) in
+	assert {is_prime_set s 10};
+	assert { contains s 2 };
+	assert { contains s 3 };
+	assert { contains s 5 };
+	assert { contains s 7 };
+	assert { not (contains s 11) }
+end
