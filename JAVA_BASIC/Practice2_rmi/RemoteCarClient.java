@@ -14,7 +14,8 @@ public class RemoteCarClient implements Runnable {
     static String[] colors = {"red", "blue", "green", "yellow", "black", "white"};
     public static int port = 8080;
     public static String name = "RMICarServer";
-    public static String host = "185.188.181.184";
+    // use your own IP address or domain name
+    public static String host = "127.0.0.1";
     public static Registry registry;
 
     static {
