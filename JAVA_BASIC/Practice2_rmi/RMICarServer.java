@@ -10,8 +10,9 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Stream;
+import java.util.function.Supplier;
 
 public class RMICarServer extends BasicCarServer implements RemoteCarServer {
 
@@ -24,14 +25,11 @@ public class RMICarServer extends BasicCarServer implements RemoteCarServer {
                 ? carServer.createCar()
                 : carServer.getCar(carIndex);
 
-        Command comm = Stream.of(command)
+        return Optional.of(command)
                 .map(cmd -> cmd.commandName + " " + cmd.commandparameter)
                 .map(cmdStr -> Command.createCommand(carProvider.apply(command.carIndex), cmdStr))
-                .findFirst()
+                .map(Command::execute)
                 .orElseThrow();
-
-        System.out.println(comm);
-        return comm.execute();
     }
 
     public RMICarServer(FieldMatrix fieldMatrix, CarEventsListener carEventsListener) {
@@ -47,7 +45,14 @@ public class RMICarServer extends BasicCarServer implements RemoteCarServer {
 
     private static FieldMatrix loadFieldMatrix(String fileName) throws Exception {
         InputStream inputStream = CarPainter.class.getClassLoader().getResourceAsStream(fileName);
-        return FieldMatrix.load(new InputStreamReader(inputStream));
+        return Optional.ofNullable(inputStream)
+                .map(InputStreamReader::new)
+                .map(FieldMatrix::load)
+                .orElseThrow(resourceNotFound(fileName));
+    }
+
+    private static Supplier<RuntimeException> resourceNotFound(String fileName) {
+        return () -> new RuntimeException("Resource not found: " + fileName);
     }
 
     private static void startRMIServer(RMICarServer server) throws Exception {
