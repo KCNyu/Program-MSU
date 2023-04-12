@@ -1,0 +1,70 @@
+module Task3
+
+    use import int.Int
+
+    use import ref.Ref
+
+    function sqrt_d (x : int) : int 
+
+    axiom sqrt_def:
+        forall x : int.
+            let r = sqrt_d x in
+            x >= 0 -> (r * r <= x < (r + 1) * (r + 1))
+
+
+    predicate q (x y1 y2 : int) = 
+        (x <> 0 -> (y1 >= 0 && y2 > 0)) && (x = 0 -> (y1 = y2 = 0))
+    
+    predicate p (x y1 y2 : int) = 
+        ((y2 >=  y1 -> y1 = sqrt_d x) && (q x y1 y2) && (y2 >= sqrt_d x))
+
+    function div_d(a : int) (b : int) : int
+
+    axiom div_def:
+        forall a b : int.
+            a >= 0 && b > 0 -> 0 <= a - (div_d a b) * b < b
+
+    val div(a : int) (b : int) : int
+        requires {a >= 0}
+        requires {b > 0}
+        ensures {result = div_d a b}
+    
+    lemma div_rev:
+        forall a b c : int.
+            a >= 0 && b > 0 -> (div_d a b) < c <-> a < b * c
+    
+    lemma sqrt_sqrt:
+        forall x : int.
+            x * x >= 0
+
+    let sqrt(x : int) : int 
+        requires {x >= 0}
+        ensures {result = sqrt_d x}
+    =
+        let y1 = ref x in 
+        let y2 = ref 0 in
+        y2 := div (x + 1) 2; 
+        while !y2 < !y1 do 
+        invariant {p x !y1 !y2}
+        variant {!y1}
+            y1 := div x !y2;
+            y1 := div (!y1 + !y2) 2;
+            assert {x - (sqrt_d x) * (sqrt_d x) >= 0};
+            assert {((sqrt_d x) - !y2) * ((sqrt_d x) - !y2) >= 0};
+            assert {x - (sqrt_d x) * (sqrt_d x) + ((sqrt_d x) - !y2) * ((sqrt_d x) - !y2) >= 0};
+            assert {x - 2 * (sqrt_d x) * !y2 + !y2 * !y2 >= 0};
+            assert {x >= !y2 * (2 * (sqrt_d x) - !y2)};
+            assert {(div_d x !y2) >= 2 * (sqrt_d x) - !y2};
+            assert {(div_d x !y2) + !y2 >= 2 * (sqrt_d x)};
+            assert {(div_d ((div_d x !y2) + !y2) 2) >= sqrt_d x};
+            let xhg = !y1 in
+            y1 := !y2;
+            y2 := xhg;
+        done;
+        !y1
+    
+    let sqrt_gr_zero (x : int)
+        requires {x >= 0}
+    =
+        assert {exists r : int. r * r <= x < (r + 1) * (r + 1)}
+end

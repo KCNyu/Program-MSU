@@ -1,0 +1,95 @@
+module CMemory
+    use import int.Int
+    use import map.Map
+
+    type pointer 'a
+
+    type alloc_table 'a
+
+    type memory 'a = map (pointer 'a) 'a
+
+    function offset_min (p : pointer 'a) (a : alloc_table 'a) : int
+
+    function offset_max (p : pointer 'a) (a : alloc_table 'a) : int
+
+    predicate same_block (p1 : pointer 'a) (p2 : pointer 'a)
+
+    predicate is_alloc (p : pointer 'a) (a : alloc_table 'a) = (offset_min p a) <= (offset_max p a)
+
+    predicate valid (p : pointer 'a) (a : alloc_table 'a) = (offset_min p a) <= 0 && (offset_max p a) > 0 
+
+    predicate valid_range (p : pointer 'a) (a : alloc_table 'a) (left : int) (right : int) =
+        left >= (offset_min p a) && right <=  (offset_max p a)
+    
+    function select (p : pointer 'a) (m : memory 'a) : 'a = get m p
+
+    function store (p : pointer 'a) (m : memory 'a) (v : 'a) : memory 'a = set m p v
+
+    function shift (p : pointer 'a) (v : int) : pointer 'a
+    
+    axiom shift_min:
+        forall p : pointer 'a, a : alloc_table 'a, v : int.
+            (offset_min (shift p v) a) = (offset_min p a) - v
+    
+    axiom shift_max:
+        forall p : pointer 'a, a : alloc_table 'a, v : int.
+            (offset_max (shift p v) a) = (offset_max p a) - v
+
+    axiom same_same:
+        forall p : pointer 'a.
+            (same_block p p) <-> true
+    
+    axiom same_eq:
+        forall p1, p2 : pointer 'a.
+            (same_block p1 p2) <-> (same_block p2 p1)
+    
+    axiom same_tr:
+        forall p1, p2, p3 : pointer 'a. 
+            (same_block p1 p2) && (same_block p2 p3) -> (same_block p1 p3)
+
+    axiom shift_same:
+        forall p1, p2 : pointer 'a, v : int.
+            (same_block (shift p1 v) p2) <-> (same_block p1 p2)
+
+    val acc (p : pointer 'a) (m : memory 'a) (a : alloc_table 'a) : 'a
+        requires {valid p a}
+        ensures {result = select p m}
+
+    val upd (p : pointer 'a) (m : memory 'a) (a : alloc_table 'a) (v : 'a) : memory 'a
+        requires {valid p a}
+        ensures {result = store p m v}
+
+    val shft (p : pointer 'a) (v : int) : pointer 'a
+        ensures {result = shift p v}
+end
+
+module Task51
+    use import CMemory
+    use import ref.Ref
+    use import int.Int
+
+    let replace_uint (self : pointer int) (size : int) (x : pointer int) 
+    (y : pointer int) (mem : memory int) (a : alloc_table int) : memory int
+        requires {size > 0}
+        requires {valid_range self a 0 (size - 1)}
+        requires {valid x a}
+        requires {valid y a}
+        ensures {(select x mem) = (select x result)}
+        ensures {(select y mem) = (select y result)}
+        ensures {forall z : int. (0 <= z < size) && ((select (shift self z) mem) <> (select x mem)) -> 
+            ((select (shift self z) mem) = (select (shift self z) result))}
+        ensures {forall z : int. (0 <= z < size) && ((select (shift self z) mem) = (select x mem)) -> 
+            ((select (shift self z) result) = (select y mem))}
+        ensures {forall z : int. (not (0 <= z < size)) && (valid (shift self z) a) -> 
+            ((select (shift self z) mem) = (select (shift self z) result))}
+        ensures {forall p : pointer int. (not (same_block self p)) && (valid p a) -> (select p result) = (select p mem)}
+    =
+        let i = ref 0 in
+        let cur_mem = ref mem in
+        while !i < size do
+            if  (acc (shft self !i) !cur_mem a) = (acc x !cur_mem a) then 
+                cur_mem := upd (shft self !i) !cur_mem a (acc y !cur_mem a);
+            i :=  !i + 1;
+        done;
+        !cur_mem
+end

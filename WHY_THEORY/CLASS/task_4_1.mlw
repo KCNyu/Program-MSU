@@ -1,0 +1,85 @@
+module MapVer
+    use import ref.Ref
+
+    type map 'a 'b
+
+    constant empty : map 'a 'b
+
+    predicate has_key (self : map 'a 'b) (key : 'a) 
+    
+    function get (self : map 'a 'b) (key : 'a) : 'b 
+
+    function set (self : map 'a 'b) (key : 'a) (value : 'b) : map 'a 'b
+
+    axiom new_has:
+        forall key : 'a.
+            forall m : map 'a 'b.
+                (m = empty) ->
+                    (has_key (m) key) <-> false
+    
+    axiom set_get:
+        forall m : map 'a 'b, key : 'a, value : 'b, key2 : 'a .
+            ((get (set m key value) key) = value) && 
+                ((key <> key2) -> ((get (set m key value) key2) = (get m key2)))
+    
+    axiom set_has:
+         forall m : map 'a 'b, key : 'a, value : 'b, key2 : 'a .
+            (has_key (set m key value) key) && 
+                ((key <> key2) -> ((has_key (set m key value) key2) <-> (has_key m key2)))
+
+    val get (self : ref (map 'a 'b)) (key : 'a) : 'b
+        requires {has_key !self key}
+        ensures {result = (get (old !self) key)}
+        ensures {!self = (old !self)}
+    
+    val set (self : ref (map 'a 'b)) (key : 'a) (value : 'b) : unit
+        ensures {!self = (set (old !self) key value)}
+end
+
+module ArrayTask
+    use import int.Int
+    use import MapVer
+    use import ref.Ref
+
+    let map_spec():unit = 
+    let m = ref (empty) in
+    set m 1 2;
+    set m 3 4;
+    assert{ (get !m 1) = 2};
+    assert{ (get !m 3) = 4}
+
+
+    let replace (self : ref (map int 'b)) (size : int) (x : 'b) (y : 'b) : unit
+        requires {size >= 0}
+        requires {forall z : int. 0 <= z < size -> has_key !self z}
+        ensures {forall z : int. 0 <= z < size -> has_key !self z}
+        ensures {forall z : int. (0 <= z < size) && (get (old !self) z <> x) -> 
+            ((get !self z) = (get (old !self) z))}
+        ensures {forall z : int. (0 <= z < size) && (get (old !self) z = x) -> 
+            ((get !self z) = y)}
+        ensures {forall z : int. (not (0 <= z < size)) && (has_key (old !self) z) -> 
+            (has_key !self z) && ((get (old !self) z) = (get !self z))}
+        ensures {forall z : int. (not (0 <= z < size)) && (not (has_key (old !self) z)) -> 
+            (not (has_key !self z))}
+    =
+        'Before:
+        let i = ref 0 in
+        while !i < size do
+            variant {size - !i}
+            invariant {(size - !i) >= 0}
+            invariant {!i >= 0}
+            invariant {forall z : int. 0 <= z < size -> has_key !self z}
+            invariant {forall z : int. (!i <= z < size) -> 
+                ((get !self z) = (get (at !self 'Before) z))}
+            invariant {forall z : int. (0 <= z < !i) && (get (at !self 'Before) z <> x) -> 
+                ((get !self z) = (get (at !self 'Before) z))}
+            invariant {forall z : int. (0 <= z < !i) && (get (at !self 'Before) z = x) -> 
+                ((get !self z) = y)}
+            invariant {forall z : int. (not (0 <= z < size)) && (has_key (at !self 'Before) z) -> 
+                (has_key !self z) && ((get (at !self 'Before) z) = (get !self z))}
+            invariant {forall z : int. (not (0 <= z < size)) && (not (has_key (at !self 'Before) z)) -> 
+                (not (has_key !self z))}
+            if (get self !i) = x then set self !i y;
+            i := !i + 1;
+        done;
+end

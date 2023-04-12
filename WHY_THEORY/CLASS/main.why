@@ -1,0 +1,13 @@
+theory Main
+
+    use import int.Int
+
+    (* goal test: forall x. x > 0 ->  not(forall t. t > 0 -> x * t = x)
+    goal G: forall x. x > 0 -> (exists t. t > 0 /\ x*t <> x) *)
+    lemma L: forall x. x * 2 = x + x
+    (* goal G: forall x. x * 2 = x + x /\ x > 0 ->  not(forall t. t > 0 -> x * t = x) *)
+    goal G: forall x. x > 0 ->  not(forall t. t > 0 -> x * t = x)
+
+    goal G2: forall x,y,z:int. (x < y < z) -> 
+    
+end

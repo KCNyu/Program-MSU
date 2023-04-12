@@ -1,0 +1,112 @@
+theory  SemTask1
+    use import int.Int
+
+    function sqrt(x : int) : int
+
+    axiom sqrt_def:
+        forall x : int.
+            let r = sqrt x in
+            x >=0 -> (r * r <= x < (r + 1) * (r + 1))
+
+    predicate div_phi (x1 : int) (x2 : int) = 
+        x1 >= 0 && x2 > 0
+
+    predicate div_psi (x1 : int) (x2 : int) (z1 : int) =
+        0 <= x1 - z1 * x2 < x2
+    
+    predicate q (x y1 y2 : int) = 
+        (x <> 0 -> (y1 >= 0 && y2 > 0)) && (x = 0 -> (y1 = y2 = 0)) 
+
+    predicate p2 (x y1 y2 : int) = exists r : int. (r * r <= x < (r + 1) * (r + 1)) &&
+        ((y2 >=  y1 -> y1 = sqrt x) && (q x y1 y2) && (y2 >= sqrt x))
+
+    predicate p (x y1 y2 : int) = 
+        ((y2 >=  y1 -> y1 = sqrt x) && (q x y1 y2) && (y2 >= sqrt x))
+    
+    predicate in_W (x : int) =
+        x >= 0
+    
+    goal correct_u:
+        forall x y1 y2 : int.
+            x >= 0 && p x y1 y2 -> y1 >= 0
+    
+    goal a_a_u:
+        forall x y1 y2 r1 r2 : int.
+            x >= 0 && p x y1 y2 && y2 < y1 
+            && div_psi x y2 r1 && div_psi (r1 + y2) 2 r2 ->
+                y2 < y1
+    
+    goal first_div_cor:
+        forall x y1 y2 : int.
+            x >= 0 && p x y1 y2 && y2 < y1 -> 
+                div_phi x y2
+    
+    goal second_div_cor:
+        forall x y1 y2 r1 : int.
+            x >= 0 && p x y1 y2 && y2 < y1 && div_psi x y2 r1 -> 
+                div_phi (r1 + y2) 2
+
+    lemma l111:
+        forall x r : int.
+            x = 0 -> r = 0
+
+    (* lemma l112:
+        forall x r : int.
+            x = *)
+
+    lemma l11:
+        forall x.
+            x >= 0 -> 
+            exists r:int. (r * r <= x < (r + 1) * (r + 1))
+    
+    lemma l1:
+        forall x r1 : int.
+            x >= 0 && div_psi (x + 1) 2 r1 -> 
+            exists r:int. (r * r <= x < (r + 1) * (r + 1)) && (r1 >= x -> x =r)
+
+    lemma l2:
+        forall x r1: int.
+             x >= 0 && div_psi (x + 1) 2 r1 -> 
+             exists r:int.  q x x r1
+
+    lemma l3:
+        forall x r1: int.
+                x >= 0 && div_psi (x + 1) 2 r1 -> 
+                exists r:int.  (r * r <= x < (r + 1) * (r + 1)) && r1 >= r
+
+    goal s_a:
+        forall x r1 : int.
+            x >= 0 && div_psi (x + 1) 2 r1 -> p x x r1
+
+    goal a_a:
+        forall x y1 y2 r1 r2 : int.
+            x >= 0 && p x y1 y2 && y2 < y1 
+            && div_psi x y2 r1 && div_psi (r1 + y2) 2 r2 ->
+                p x y2 r2
+    
+    goal start_div_cor:
+        forall x : int.
+            x >= 0 -> div_phi (x + 1) 2
+    
+    goal a_h:
+        forall x y1 y2 : int.
+            x >= 0 && p x y1 y2 && y2 >= y1 -> y1 * y1 <= x < (y1 + 1) * (y1 + 1)
+    
+end
+(*
+UF: Uninterpred functions
+
+f(x y :int) : int
+goal g: forall a b c:int
+    f(a, b) = f(a, 0)
+    f(f(b,c),c) <> f(c, c) =>
+a b c d 
+{
+    f (b, c) = d
+    f (a, b) = f (a, c)
+    f (d, c) <> f(c, c)
+    f (a, d) <> f(a, b)
+
+    
+}
+*)
