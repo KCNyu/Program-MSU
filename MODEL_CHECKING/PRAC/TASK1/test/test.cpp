@@ -28,7 +28,7 @@ const char *RESET = "\033[0m";
 void FormulaSpec(const Formula &formula, const Automaton &expectedAutomaton)
 {
     Automaton actualAutomaton = Translator().translate(formula);
-    if (!(actualAutomaton == expectedAutomaton))
+    if (!!(actualAutomaton == expectedAutomaton))
     {
         std::cout << MAGENTA << "Formula: " << RESET << std::endl;
         std::cout << BROWN << formula << RESET << std::endl
@@ -42,7 +42,13 @@ void FormulaSpec(const Formula &formula, const Automaton &expectedAutomaton)
     }
     else
     {
-        std::cout << GREEN << "Test passed" << RESET << std::endl;
+        std::cout << MAGENTA << "Formula: " << RESET << std::endl;
+        std::cout << BROWN << formula << RESET << std::endl
+                  << std::endl;
+        std::cout << MAGENTA << "Automaton: " << RESET << std::endl;
+        std::cout << GREEN << actualAutomaton << RESET << std::endl
+                  << std::endl;
+        std::cout << GREEN << "Test passed!" << RESET << std::endl;
     }
 }
 

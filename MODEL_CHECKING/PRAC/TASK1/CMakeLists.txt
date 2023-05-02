@@ -16,7 +16,7 @@ enable_testing()
 
 macro(ExampleTest test_name)
     add_test(NAME test_${test_name} COMMAND ./example ${test_name})
-    set_tests_properties(test_${test_name} PROPERTIES PASS_REGULAR_EXPRESSION "Test passed")
+    set_tests_properties(test_${test_name} PROPERTIES PASS_REGULAR_EXPRESSION "Test passed!")
 endmacro(ExampleTest)
 
 ExampleTest(1)
