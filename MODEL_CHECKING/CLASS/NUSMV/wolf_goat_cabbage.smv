@@ -1,0 +1,26 @@
+MODULE main
+    VAR
+        wolf : boolean;
+        goat : boolean;
+        cabb : boolean;
+        boat : boolean;
+    ASSIGN
+        init(wolf) := FALSE;
+        init(goat) := FALSE;
+        init(cabb) := FALSE;
+        init(boat) := FALSE;
+        
+        next(boat) := !boat;
+    TRANS
+        ((wolf != boat) -> (next(wolf) = wolf)) &
+        ((goat != boat) -> (next(goat) = goat)) &
+        ((cabb != boat) -> (next(cabb) = cabb))
+    
+    TRANS
+        count((next(wolf) != wolf), (next(goat) != goat), (next(cabb) != cabb)) <= 1
+    
+    INVAR
+        ((wolf = goat) -> (wolf = boat)) &
+        ((goat = boat) -> (goat = boat))
+
+    LTLSPEC !F(wolf & goat & cabb)

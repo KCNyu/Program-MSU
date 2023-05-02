@@ -1,0 +1,52 @@
+-- N = 5
+
+MODULE Stack(L)
+    VAR
+        stack : array 0..4 of 1..5;
+        size : 0..5;
+    ASSIGN
+        init(size) := L;
+        init(stack[0]) := 5;
+        init(stack[1]) := 4;
+        init(stack[2]) := 3;
+        init(stack[3]) := 2;
+        init(stack[4]) := 1;
+
+        
+DEFINE 
+    isEmpty := (size = 0);
+    top := isEmpty ? 1 : stack[size - 1];
+    
+MODULE main
+    VAR
+        stack1 : Stack(5);
+        stack2 : Stack(0);
+        stack3 : Stack(0);
+
+        source : 1..3;
+        target : 1..3;
+
+    INVAR
+        stack1.size + stack1.size + stack2.size = 5;
+    DEFINE
+        canMove12 := (!stack1.isEmpty & stack1.top < stack2.top);
+        canMove21 := (!stack2.isEmpty & stack2.top < stack1.top);
+        canMove13 := (!stack1.isEmpty & stack1.top < stack3.top);
+        canMove31 := (!stack3.isEmpty & stack3.top < stack1.top);
+        canMove23 := (!stack2.isEmpty & stack2.top < stack3.top);
+        canMove32 := (!stack3.isEmpty & stack3.top < stack2.top);
+    INVAR
+        (source != target) & 
+        ((source = 1) & (target = 2) -> canMove12) & 
+        ((source = 2) & (target = 1) -> canMove21) & 
+        ((source = 1) & (target = 3) -> canMove13) & 
+        ((source = 3) & (target = 1) -> canMove31) & 
+        ((source = 2) & (target = 3) -> canMove23) & 
+        ((source = 3) & (target = 2) -> canMove32)
+    TRANS
+        (((source = 1) & (target = 2)) -> ((next(stack1.size) = stack1.size - 1) & (next(stack2.size) = stack2.size + 1))) &
+        (((source = 2) & (target = 1)) -> ((next(stack2.size) = stack2.size - 1) & (next(stack1.size) = stack1.size + 1))) & 
+        (((source = 1) & (target = 3)) -> ((next(stack1.size) = stack1.size - 1) & (next(stack3.size) = stack3.size + 1))) & 
+        (((source = 3) & (target = 1)) -> ((next(stack3.size) = stack3.size - 1) & (next(stack1.size) = stack1.size + 1))) & 
+        (((source = 3) & (target = 2)) -> ((next(stack3.size) = stack3.size - 1) & (next(stack2.size) = stack2.size + 1))) & 
+        (((source = 2) & (target = 3)) -> ((next(stack2.size) = stack2.size - 1) & (next(stack3.size) = stack3.size + 1)))
