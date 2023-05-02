@@ -130,6 +130,11 @@ namespace model::ltl
         return Formula::alloc(new Formula(Formula::R, &lhs, &rhs));
     }
 
+    inline const Formula &TRUE()
+    {
+        return P("TRUE");
+    }
+
     std::ostream &operator<<(std::ostream &out, const Formula &formula);
 
 } // namespace model::ltl

@@ -27,8 +27,8 @@ const char *RESET = "\033[0m";
 
 void FormulaSpec(const Formula &formula, const Automaton &expectedAutomaton)
 {
-    Automaton actualAutomaton = Translator().translate(formula);
-    if (!!(actualAutomaton == expectedAutomaton))
+    const Automaton actualAutomaton = Translator().translate(formula);
+    if (!(actualAutomaton == expectedAutomaton))
     {
         std::cout << MAGENTA << "Formula: " << RESET << std::endl;
         std::cout << BROWN << formula << RESET << std::endl
@@ -54,19 +54,21 @@ void FormulaSpec(const Formula &formula, const Automaton &expectedAutomaton)
 
 void Test1()
 {
-    const Formula &formula = G(P("p") >> F(P("q")));
+    // from 07-ltl-to-buchi-automaton.pdf:16
+    const Formula &formula = U(P("p") || P("q"), P("p") && P("q"));
     Automaton automaton;
-    automaton.add_state("s0");
-    automaton.add_state("s1");
-    automaton.add_state("s2");
+    automaton.add_states({"s0", "s1", "s2", "s3", "s4", "s5", "s6"});
+
     automaton.set_initial("s0");
-    automaton.set_final("s1", 0);
-    automaton.set_final("s2", 1);
-    automaton.add_trans("s0", {"p"}, "s1");
-    automaton.add_trans("s0", {"q"}, "s2");
-    automaton.add_trans("s1", {}, "s0");
-    automaton.add_trans("s1", {"p", "q"}, "s2");
-    automaton.add_trans("s2", {}, "s2");
+
+    automaton.set_finals({"s1", "s2", "s4", "s6"}, 0);
+
+    automaton.add_trans_s("s1", {}, {"s1", "s2", "s3", "s4", "s5", "s6"});
+    automaton.add_trans_s("s2", {"q"}, {"s1", "s2", "s4"});
+    automaton.add_trans_s("s3", {"q"}, {"s3", "s5", "s6"});
+    automaton.add_trans_s("s4", {"p"}, {"s1", "s2", "s4"});
+    automaton.add_trans_s("s5", {"p"}, {"s3", "s5", "s6"});
+    automaton.add_trans_s("s6", {"p", "q"}, {"s1", "s2", "s3", "s4", "s5", "s6"});
 
     FormulaSpec(formula, automaton);
 }

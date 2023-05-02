@@ -66,15 +66,22 @@ namespace model::fsm
         Automaton() {}
 
         void add_state(const std::string &state_label);
+        void add_states(const std::vector<std::string> &state_labels);
         void set_initial(const std::string &state_label);
         void set_final(const std::string &state_label, unsigned final_set_index);
+        void set_finals(const std::vector<std::string> &state_labels, unsigned final_set_index);
 
         void add_trans(
             const std::string &source,
             const std::set<std::string> &symbol,
             const std::string &target);
 
-        bool operator==(const Automaton &rhs) const
+        void add_trans_s(const std::string &source,
+                         const std::set<std::string> &symbol,
+                         const std::vector<std::string> &targets);
+
+        bool
+        operator==(const Automaton &rhs) const
         {
             return _states == rhs._states && _initial_states == rhs._initial_states && _final_states == rhs._final_states && _transitions == rhs._transitions;
         }
@@ -92,9 +99,25 @@ namespace model::fsm
         _states.insert({state_label, state});
     }
 
+    inline void Automaton::add_states(const std::vector<std::string> &state_labels)
+    {
+        for (const auto &label : state_labels)
+        {
+            add_state(label);
+        }
+    }
+
     inline void Automaton::set_initial(const std::string &state_label)
     {
         _initial_states.insert(state_label);
+    }
+
+    inline void Automaton::set_finals(const std::vector<std::string> &state_labels, unsigned final_set_index)
+    {
+        for (const auto &label : state_labels)
+        {
+            set_final(label, final_set_index);
+        }
     }
 
     inline void Automaton::set_final(const std::string &state_label, unsigned final_set_index)
@@ -113,5 +136,15 @@ namespace model::fsm
 
         Transition trans(s->second, symbol, t->second);
         _transitions[source].push_back(trans);
+    }
+
+    inline void Automaton::add_trans_s(const std::string &source,
+                                       const std::set<std::string> &symbol,
+                                       const std::vector<std::string> &targets)
+    {
+        for (const auto &target : targets)
+        {
+            add_trans(source, symbol, target);
+        }
     }
 } // namespace model::fsm

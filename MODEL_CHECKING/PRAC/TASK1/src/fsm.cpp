@@ -43,6 +43,7 @@ namespace model::fsm
             for (const auto &state : entry.second)
             {
                 out << (separator ? ", " : "") << state;
+                separator = true;
             }
             out << "}" << std::endl;
         }

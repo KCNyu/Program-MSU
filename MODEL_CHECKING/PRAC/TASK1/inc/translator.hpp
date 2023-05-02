@@ -12,6 +12,7 @@ namespace model::translator
     public:
         Translator() {}
         ~Translator() {}
-        fsm::Automaton translate(const ltl::Formula &formula);
+        const ltl::Formula simplify(const ltl::Formula &formula);
+        const fsm::Automaton translate(const ltl::Formula &formula);
     };
 } // namespace model::
