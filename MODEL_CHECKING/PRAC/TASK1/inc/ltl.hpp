@@ -42,6 +42,34 @@ namespace model::ltl
         const Formula &operator&&(const Formula &rhs) const;
         const Formula &operator||(const Formula &rhs) const;
         const Formula &operator>>(const Formula &rhs) const;
+        bool operator==(const Formula &other) const
+        {
+            if (_kind != other._kind)
+            {
+                return false;
+            }
+            if (_prop != other._prop)
+            {
+                return false;
+            }
+            if ((_lhs == nullptr) != (other._lhs == nullptr))
+            {
+                return false;
+            }
+            if (_lhs != nullptr && !(*_lhs == *other._lhs))
+            {
+                return false;
+            }
+            if ((_rhs == nullptr) != (other._rhs == nullptr))
+            {
+                return false;
+            }
+            if (_rhs != nullptr && !(*_rhs == *other._rhs))
+            {
+                return false;
+            }
+            return true;
+        }
 
         friend const Formula &P(const std::string &prop);
         friend const Formula &X(const Formula &arg);
@@ -49,6 +77,7 @@ namespace model::ltl
         friend const Formula &F(const Formula &arg);
         friend const Formula &U(const Formula &lhs, const Formula &rhs);
         friend const Formula &R(const Formula &lhs, const Formula &rhs);
+        friend const Formula &TRUE();
 
         Kind kind() const { return _kind; }
         std::string prop() const { return _prop; }
@@ -57,12 +86,25 @@ namespace model::ltl
         const Formula &lhs() const { return *_lhs; }
         const Formula &rhs() const { return *_rhs; }
 
+        size_t hash() const
+        {
+            std::hash<std::string> string_hasher;
+            size_t h = 0;
+            h ^= static_cast<size_t>(_kind) << 1;
+            h ^= string_hasher(_prop) << 2;
+            h ^= std::hash<const Formula *>{}(_lhs) << 3;
+            h ^= std::hash<const Formula *>{}(_rhs) << 4;
+            return h;
+        }
+
     private:
         Formula(Kind kind, const std::string &prop, const Formula *lhs, const Formula *rhs) : _kind(kind), _prop(prop), _lhs(lhs), _rhs(rhs) {}
 
         Formula(const std::string &prop) : Formula(ATOM, prop, nullptr, nullptr) {}
 
         Formula(Kind kind, const Formula *arg) : Formula(kind, "", arg, nullptr) {}
+
+        Formula(Kind kind, const std::string &prop, const Formula *arg) : Formula(kind, prop, arg, nullptr) {}
 
         Formula(Kind kind, const Formula *lhs, const Formula *rhs) : Formula(kind, "", lhs, rhs) {}
 
@@ -107,7 +149,7 @@ namespace model::ltl
 
     inline const Formula &X(const Formula &arg)
     {
-        return Formula::alloc(new Formula(Formula::X, &arg));
+        return Formula::alloc(new Formula(Formula::X, "X(" + arg.prop() + ")", &arg));
     }
 
     inline const Formula &G(const Formula &arg)
@@ -132,9 +174,20 @@ namespace model::ltl
 
     inline const Formula &TRUE()
     {
-        return P("TRUE");
+        return Formula::alloc(new Formula("true"));
     }
 
     std::ostream &operator<<(std::ostream &out, const Formula &formula);
 
 } // namespace model::ltl
+namespace std
+{
+    template <>
+    struct hash<model::ltl::Formula>
+    {
+        size_t operator()(const model::ltl::Formula &formula) const
+        {
+            return formula.hash();
+        }
+    };
+} // namespace std

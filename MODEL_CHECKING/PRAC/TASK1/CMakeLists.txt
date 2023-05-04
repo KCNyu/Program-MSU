@@ -20,3 +20,4 @@ macro(ExampleTest test_name)
 endmacro(ExampleTest)
 
 ExampleTest(1)
+ExampleTest(2)

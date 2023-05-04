@@ -80,10 +80,13 @@ namespace model::fsm
                          const std::set<std::string> &symbol,
                          const std::vector<std::string> &targets);
 
-        bool
-        operator==(const Automaton &rhs) const
+        bool operator==(const Automaton &rhs) const
         {
             return _states == rhs._states && _initial_states == rhs._initial_states && _final_states == rhs._final_states && _transitions == rhs._transitions;
+        }
+        bool operator!=(const Automaton &rhs) const
+        {
+            return !(*this == rhs); 
         }
 
     private:

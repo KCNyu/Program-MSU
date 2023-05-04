@@ -28,7 +28,7 @@ const char *RESET = "\033[0m";
 void FormulaSpec(const Formula &formula, const Automaton &expectedAutomaton)
 {
     const Automaton actualAutomaton = Translator().translate(formula);
-    if (!(actualAutomaton == expectedAutomaton))
+    if (actualAutomaton != expectedAutomaton)
     {
         std::cout << MAGENTA << "Formula: " << RESET << std::endl;
         std::cout << BROWN << formula << RESET << std::endl
@@ -72,13 +72,22 @@ void Test1()
 
     FormulaSpec(formula, automaton);
 }
+void Test2()
+{
+    const Formula &formula = G(P("p") >> X(P("q")));
+    Automaton automaton;
 
+    FormulaSpec(formula, automaton);
+}
 void RunTests(const char *TestName)
 {
     switch (atoi(TestName))
     {
     case 1:
         Test1();
+        break;
+    case 2:
+        Test2();
         break;
     default:
         std::cout << "No such test" << std::endl;
