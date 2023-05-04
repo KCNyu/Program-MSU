@@ -65,11 +65,13 @@ namespace model::fsm
     public:
         Automaton() {}
 
-        void add_state(const std::string &state_label);
-        void add_states(const std::vector<std::string> &state_labels);
-        void set_initial(const std::string &state_label);
-        void set_final(const std::string &state_label, unsigned final_set_index);
-        void set_finals(const std::vector<std::string> &state_labels, unsigned final_set_index);
+        template <typename... StateLabels>
+        void add_state(StateLabels &&...state_labels);
+        template <typename... StateLabels>
+        void set_initial(StateLabels &&...state_labels);
+        template <typename... StateLabels>
+        void set_final(unsigned final_set_index, StateLabels &&...state_labels);
+        // void set_final(const std::string &state_label, unsigned final_set_index);
 
         void add_trans(
             const std::string &source,
@@ -96,36 +98,35 @@ namespace model::fsm
         std::map<std::string, std::vector<Transition>> _transitions;
     };
 
-    inline void Automaton::add_state(const std::string &state_label)
+    template <typename... StateLabels>
+    void Automaton::add_state(StateLabels &&...state_labels)
     {
-        State state(state_label);
-        _states.insert({state_label, state});
-    }
-
-    inline void Automaton::add_states(const std::vector<std::string> &state_labels)
-    {
-        for (const auto &label : state_labels)
+        auto add_state = [this](const std::string &state_label)
         {
-            add_state(label);
-        }
+            State state(state_label);
+            _states.insert({state_label, state});
+        };
+        (add_state(std::forward<StateLabels>(state_labels)), ...);
     }
-
-    inline void Automaton::set_initial(const std::string &state_label)
+    template <typename... StateLabels>
+    void Automaton::set_initial(StateLabels &&...state_labels)
     {
-        _initial_states.insert(state_label);
-    }
-
-    inline void Automaton::set_finals(const std::vector<std::string> &state_labels, unsigned final_set_index)
-    {
-        for (const auto &label : state_labels)
+        auto set_initial = [this](const std::string &state_label)
         {
-            set_final(label, final_set_index);
-        }
+            State state(state_label);
+            _initial_states.insert(state_label);
+        };
+        (set_initial(std::forward<StateLabels>(state_labels)), ...);
     }
 
-    inline void Automaton::set_final(const std::string &state_label, unsigned final_set_index)
+    template <typename... StateLabels>
+    void Automaton::set_final(unsigned final_set_index, StateLabels &&...state_labels)
     {
-        _final_states[final_set_index].insert(state_label);
+        auto set_final = [this, &final_set_index](const std::string &state_label)
+        {
+            _final_states[final_set_index].insert(state_label);
+        };
+        (set_final(std::forward<StateLabels>(state_labels)), ...);
     }
 
     inline void Automaton::add_trans(

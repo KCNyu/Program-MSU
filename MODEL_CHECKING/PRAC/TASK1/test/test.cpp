@@ -57,11 +57,11 @@ void Test1()
     // from 07-ltl-to-buchi-automaton.pdf:16
     const Formula &formula = U(P("p") || P("q"), P("p") && P("q"));
     Automaton automaton;
-    automaton.add_states({"s0", "s1", "s2", "s3", "s4", "s5", "s6"});
+    automaton.add_state("s1", "s2", "s3", "s4", "s5", "s6");
 
-    automaton.set_initial("s0");
+    automaton.set_initial("s3", "s5", "s6");
 
-    automaton.set_finals({"s1", "s2", "s4", "s6"}, 0);
+    automaton.set_final(0, "s1", "s2", "s4", "s6");
 
     automaton.add_trans_s("s1", {}, {"s1", "s2", "s3", "s4", "s5", "s6"});
     automaton.add_trans_s("s2", {"q"}, {"s1", "s2", "s4"});

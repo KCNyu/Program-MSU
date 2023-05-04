@@ -124,22 +124,22 @@ namespace model::ltl
 
     inline const Formula &Formula::operator!() const
     {
-        return alloc(new Formula(NOT, this));
+        return alloc(new Formula(NOT, "!(" + this->prop() + ")", this));
     }
 
     inline const Formula &Formula::operator&&(const Formula &rhs) const
     {
-        return alloc(new Formula(AND, this, &rhs));
+        return alloc(new Formula(AND, "(" + this->prop() + ")&&(" + rhs.prop() + ")", this, &rhs));
     }
 
     inline const Formula &Formula::operator||(const Formula &rhs) const
     {
-        return alloc(new Formula(OR, this, &rhs));
+        return alloc(new Formula(OR, "(" + this->prop() + ")||(" + rhs.prop() + ")", this, &rhs));
     }
 
     inline const Formula &Formula::operator>>(const Formula &rhs) const
     {
-        return alloc(new Formula(IMPL, this, &rhs));
+        return alloc(new Formula(IMPL, "(" + this->prop() + ")->(" + rhs.prop() + ")", this, &rhs));
     }
 
     inline const Formula &P(const std::string &prop)
@@ -154,22 +154,22 @@ namespace model::ltl
 
     inline const Formula &G(const Formula &arg)
     {
-        return Formula::alloc(new Formula(Formula::G, &arg));
+        return Formula::alloc(new Formula(Formula::G, "G(" + arg.prop() + ")", &arg));
     }
 
     inline const Formula &F(const Formula &arg)
     {
-        return Formula::alloc(new Formula(Formula::F, &arg));
+        return Formula::alloc(new Formula(Formula::F, "F(" + arg.prop() + ")", &arg));
     }
 
     inline const Formula &U(const Formula &lhs, const Formula &rhs)
     {
-        return Formula::alloc(new Formula(Formula::U, &lhs, &rhs));
+        return Formula::alloc(new Formula(Formula::U, "(" + lhs.prop() + ")U(" + rhs.prop() + ")", &lhs, &rhs));
     }
 
     inline const Formula &R(const Formula &lhs, const Formula &rhs)
     {
-        return Formula::alloc(new Formula(Formula::R, &lhs, &rhs));
+        return Formula::alloc(new Formula(Formula::R, "(" + lhs.prop() + ")R(" + rhs.prop() + ")", &lhs, &rhs));
     }
 
     inline const Formula &TRUE()

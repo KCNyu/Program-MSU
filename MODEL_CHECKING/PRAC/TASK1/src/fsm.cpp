@@ -33,6 +33,7 @@ namespace model::fsm
         for (const auto &state : automaton._initial_states)
         {
             out << (separator ? ", " : "") << state;
+            separator = true;
         }
         out << "}" << std::endl;
 
