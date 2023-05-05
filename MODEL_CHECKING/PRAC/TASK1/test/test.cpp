@@ -111,13 +111,13 @@ void Test2()
     automaton.add_trans_s("s5", {}, {"s9", "s10", "s12", "s14"});
     automaton.add_trans_s("s6", {"p"}, {"s8", "s11", "s13"});
     automaton.add_trans_s("s7", {"p"}, {"s9", "s10", "s12", "s14"});
-    automaton.add_trans_s("s8", {"q"}, {"s1","s4","s6"});
-    automaton.add_trans_s("s9", {"q"}, {"s2","s3","s5","s7"});
-    automaton.add_trans_s("s10", {"p","q"}, {"s1","s2","s3","s4","s5","s6","s7"});
-    automaton.add_trans_s("s11", {"q"}, {"s8","s11","s13"});
-    automaton.add_trans_s("s12", {"q"}, {"s9","s10","s12","s14"});
-    automaton.add_trans_s("s13", {"p","q"}, {"s8","s11","s13"});
-    automaton.add_trans_s("s14", {"p","q"}, {"s9","s10","s12","s14"});
+    automaton.add_trans_s("s8", {"q"}, {"s1", "s4", "s6"});
+    automaton.add_trans_s("s9", {"q"}, {"s2", "s3", "s5", "s7"});
+    automaton.add_trans_s("s10", {"p", "q"}, {"s1", "s2", "s3", "s4", "s5", "s6", "s7"});
+    automaton.add_trans_s("s11", {"q"}, {"s8", "s11", "s13"});
+    automaton.add_trans_s("s12", {"q"}, {"s9", "s10", "s12", "s14"});
+    automaton.add_trans_s("s13", {"p", "q"}, {"s8", "s11", "s13"});
+    automaton.add_trans_s("s14", {"p", "q"}, {"s9", "s10", "s12", "s14"});
 
     FormulaSpec(formula, automaton);
 }
