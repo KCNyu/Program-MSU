@@ -25,30 +25,51 @@ const char *BROWN = "\033[33m";
 const char *MAGENTA = "\033[36m";
 const char *RESET = "\033[0m";
 
+class ColoredStream
+{
+public:
+    ColoredStream(const char *color, std::ostream &stream = std::cout)
+        : _color(color), _stream(stream) {}
+
+    template <typename T>
+    friend ColoredStream &operator<<(ColoredStream &cs, const T &obj)
+    {
+        cs._stream << cs._color << obj << RESET << std::endl;
+        return cs;
+    }
+
+private:
+    const char *_color;
+    std::ostream &_stream;
+};
+
+// Helper instances for colored output
+ColoredStream info(MAGENTA);
+ColoredStream text(BROWN);
+ColoredStream success(GREEN);
+ColoredStream error(RED);
 void FormulaSpec(const Formula &formula, const Automaton &expectedAutomaton)
 {
     const Automaton actualAutomaton = Translator().translate(formula);
     if (actualAutomaton != expectedAutomaton)
     {
-        std::cout << MAGENTA << "Formula: " << RESET << std::endl;
-        std::cout << BROWN << formula << RESET << std::endl
-                  << std::endl;
-        std::cout << MAGENTA << "Expected automaton: " << RESET << std::endl;
-        std::cout << GREEN << expectedAutomaton << RESET << std::endl
-                  << std::endl;
-        std::cout << MAGENTA << "Actual automaton: " << RESET << std::endl;
-        std::cout << RED << actualAutomaton << RESET << std::endl
-                  << std::endl;
+        info << "Formula:";
+        text << formula;
+        info << "Expected automaton:";
+        success << expectedAutomaton;
+        info << "Actual automaton:";
+        error << actualAutomaton;
+        info << "Test result:";
+        error << "Test failed!";
     }
     else
     {
-        std::cout << MAGENTA << "Formula: " << RESET << std::endl;
-        std::cout << BROWN << formula << RESET << std::endl
-                  << std::endl;
-        std::cout << MAGENTA << "Automaton: " << RESET << std::endl;
-        std::cout << GREEN << actualAutomaton << RESET << std::endl
-                  << std::endl;
-        std::cout << GREEN << "Test passed!" << RESET << std::endl;
+        info << "Formula:";
+        text << formula;
+        info << "Automaton:";
+        success << actualAutomaton;
+        info << "Test result:";
+        success << "Test passed!";
     }
 }
 

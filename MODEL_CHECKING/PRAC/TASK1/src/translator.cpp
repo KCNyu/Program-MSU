@@ -52,6 +52,7 @@ namespace model::translator
         }
         }
     }
+    
     FormulaSet Translator::get_closure(const Formula &formula)
     {
         FormulaSet closure_set;
@@ -95,6 +96,7 @@ namespace model::translator
 
         return closure_set;
     }
+    
     AtomPermutation Translator::get_permuation_atoms(const AtomMap &atoms)
     {
         std::vector<AtomMap> permutations;
@@ -120,6 +122,7 @@ namespace model::translator
         generate_permutations_rec(0, atoms);
         return permutations;
     }
+    
     AtomPermutation Translator::get_atoms(const FormulaSet &closure)
     {
         AtomMap atoms;
@@ -136,12 +139,13 @@ namespace model::translator
         }
         return get_permuation_atoms(atoms);
     }
-    std::optional<bool> caculate(const Formula &formula, const AtomMap &atoms)
+    
+    std::optional<bool> Translator::calculate(const Formula &formula, const AtomMap &atoms)
     {
         using OpFunc = std::function<std::optional<bool>(const Formula &, const AtomMap &)>;
 
         std::unordered_map<Formula::Kind, OpFunc> operations = {
-            {Formula::ATOM, [](const Formula &formula, const AtomMap &atoms) -> std::optional<bool>
+            {Formula::ATOM, [this](const Formula &formula, const AtomMap &atoms) -> std::optional<bool>
              {
                  if (formula.prop() == "true")
                      return true;
@@ -149,27 +153,27 @@ namespace model::translator
                      return false;
                  return atoms.at(formula.prop());
              }},
-            {Formula::X, [](const Formula &formula, const AtomMap &atoms) -> std::optional<bool>
+            {Formula::X, [this](const Formula &formula, const AtomMap &atoms) -> std::optional<bool>
              {
                  return atoms.at(formula.prop());
              }},
-            {Formula::NOT, [](const Formula &formula, const AtomMap &atoms) -> std::optional<bool>
+            {Formula::NOT, [this](const Formula &formula, const AtomMap &atoms) -> std::optional<bool>
              {
-                 auto arg_result = caculate(formula.lhs(), atoms);
+                 auto arg_result = calculate(formula.lhs(), atoms);
                  return arg_result.has_value() ? std::optional<bool>(!*arg_result) : std::nullopt;
              }},
-            {Formula::AND, [](const Formula &formula, const AtomMap &atoms) -> std::optional<bool>
+            {Formula::AND, [this](const Formula &formula, const AtomMap &atoms) -> std::optional<bool>
              {
-                 auto lhs_result = caculate(formula.lhs(), atoms);
-                 auto rhs_result = caculate(formula.rhs(), atoms);
+                 auto lhs_result = calculate(formula.lhs(), atoms);
+                 auto rhs_result = calculate(formula.rhs(), atoms);
                  if (!lhs_result.has_value() || !rhs_result.has_value())
                      return std::nullopt;
                  return std::optional<bool>(*lhs_result && *rhs_result);
              }},
-            {Formula::OR, [](const Formula &formula, const AtomMap &atoms) -> std::optional<bool>
+            {Formula::OR, [this](const Formula &formula, const AtomMap &atoms) -> std::optional<bool>
              {
-                 auto lhs_result = caculate(formula.lhs(), atoms);
-                 auto rhs_result = caculate(formula.rhs(), atoms);
+                 auto lhs_result = calculate(formula.lhs(), atoms);
+                 auto rhs_result = calculate(formula.rhs(), atoms);
                  if (!lhs_result.has_value() || !rhs_result.has_value())
                      return std::nullopt;
                  return std::optional<bool>(*lhs_result || *rhs_result);
@@ -183,44 +187,45 @@ namespace model::translator
 
         return std::nullopt;
     }
-    std::optional<bool> caculate(const Formula &formula, const FormulaMap &formulas)
+    
+    std::optional<bool> Translator::calculate(const Formula &formula, const FormulaMap &formulas)
     {
         using OpFunc = std::function<std::optional<bool>(const Formula &, const FormulaMap &)>;
 
         std::unordered_map<Formula::Kind, OpFunc> operations = {
-            {Formula::ATOM, [](const Formula &formula, const FormulaMap &formulas) -> std::optional<bool>
+            {Formula::ATOM, [this](const Formula &formula, const FormulaMap &formulas) -> std::optional<bool>
              {
                  return formulas.find(formula.prop()) != formulas.end();
              }},
-            {Formula::X, [](const Formula &formula, const FormulaMap &formulas) -> std::optional<bool>
+            {Formula::X, [this](const Formula &formula, const FormulaMap &formulas) -> std::optional<bool>
              {
                  return formulas.find(formula.prop()) != formulas.end();
              }},
-            {Formula::NOT, [](const Formula &formula, const FormulaMap &formulas) -> std::optional<bool>
+            {Formula::NOT, [this](const Formula &formula, const FormulaMap &formulas) -> std::optional<bool>
              {
                  if (formulas.find(formula.prop()) != formulas.end())
                      return true;
-                 auto arg_result = caculate(formula.arg(), formulas);
+                 auto arg_result = calculate(formula.arg(), formulas);
                  if (arg_result.has_value())
                      return !*arg_result;
                  return std::nullopt;
              }},
-            {Formula::AND, [](const Formula &formula, const FormulaMap &formulas) -> std::optional<bool>
+            {Formula::AND, [this](const Formula &formula, const FormulaMap &formulas) -> std::optional<bool>
              {
                  if (formulas.find(formula.prop()) != formulas.end())
                      return true;
-                 auto lhs_result = caculate(formula.lhs(), formulas);
-                 auto rhs_result = caculate(formula.rhs(), formulas);
+                 auto lhs_result = calculate(formula.lhs(), formulas);
+                 auto rhs_result = calculate(formula.rhs(), formulas);
                  if (!lhs_result.has_value() || !rhs_result.has_value())
                      return std::nullopt;
                  return std::optional<bool>(*lhs_result && *rhs_result);
              }},
-            {Formula::OR, [](const Formula &formula, const FormulaMap &formulas) -> std::optional<bool>
+            {Formula::OR, [this](const Formula &formula, const FormulaMap &formulas) -> std::optional<bool>
              {
                  if (formulas.find(formula.prop()) != formulas.end())
                      return true;
-                 auto lhs_result = caculate(formula.lhs(), formulas);
-                 auto rhs_result = caculate(formula.rhs(), formulas);
+                 auto lhs_result = calculate(formula.lhs(), formulas);
+                 auto rhs_result = calculate(formula.rhs(), formulas);
                  if (!lhs_result.has_value() || !rhs_result.has_value())
                      return std::nullopt;
                  return std::optional<bool>(*lhs_result || *rhs_result);
@@ -234,12 +239,13 @@ namespace model::translator
 
         return std::nullopt;
     }
+    
     FormulaMap Translator::get_classic(const FormulaSet &closure, const AtomMap &atoms)
     {
         FormulaMap classic;
         for (const auto &elem : closure)
         {
-            if (caculate(elem, atoms).value_or(false))
+            if (calculate(elem, atoms).value_or(false))
             {
                 classic.insert({elem.prop(), elem});
             }
@@ -266,7 +272,7 @@ namespace model::translator
                     continue;
                 }
 
-                auto closure_elem_value = caculate(elem, local_state.second);
+                auto closure_elem_value = calculate(elem, local_state.second);
                 if (closure_elem_value.value_or(false))
                 {
                     local_state.second.insert({elem.prop(), elem});
@@ -297,29 +303,11 @@ namespace model::translator
             local_state.second.insert({neg_until.prop(), neg_until});
         }
     }
+    
     StateMap Translator::get_states(const FormulaSet &closure)
     {
         AtomPermutation atoms = get_atoms(closure);
-        // StateMap states;
 
-        // size_t states_number = 1;
-        // for (auto &atom : atoms)
-        // {
-        //     FormulaMap classic = get_classic(closure, atom);
-        //     std::cout << "-------------------" << std::endl;
-        //     for (const auto &elem : classic)
-        //     {
-        //         std ::cout << elem.first << " " << elem.second << std::endl;
-        //     }
-        //     std::cout << "-------------------" << std::endl;
-        //     StateMap local_states = get_local_states(closure, states_number, classic);
-
-        //     for (const auto &local_state : local_states)
-        //     {
-        //         states.insert({local_state.first, local_state.second});
-        //     }
-        // }
-        // Transform atoms_values permutations into corresponding states.
         std::vector<StateMap> local_states_vector;
         local_states_vector.reserve(atoms.size() * atoms.size());
         size_t states_number = 1;
@@ -336,6 +324,7 @@ namespace model::translator
 
         return states;
     }
+    
     States Translator::get_initials(const StateMap &states, const Formula &f)
     {
         std::vector<std::string> initials;
@@ -347,6 +336,7 @@ namespace model::translator
 
         return initials;
     }
+    
     FinalStates Translator::get_finals(const StateMap &states, const Formula &f, const FormulaSet &closure)
     {
         FinalStates final_states;

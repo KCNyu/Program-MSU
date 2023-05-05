@@ -28,6 +28,8 @@ namespace model::translator
         AtomPermutation get_permuation_atoms(const AtomMap &atoms);
         FormulaMap get_classic(const FormulaSet &closure, const AtomMap &atoms);
         StateMap get_local_states(const FormulaSet &closure, size_t &states_number, const FormulaMap &true_formulas);
+        std::optional<bool> calculate(const Formula &formula, const AtomMap &atoms);
+        std::optional<bool> calculate(const Formula &formula, const FormulaMap &formulas);
         void handle_until_case(const Formula &closure_elem, State &local_state, StateMap &additional_states, size_t &states_number);
 
     protected:

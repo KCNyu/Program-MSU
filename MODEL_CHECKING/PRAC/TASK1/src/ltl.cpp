@@ -48,4 +48,15 @@ namespace model::ltl
         return out;
     }
 
+    const std::string Formula::to_string() const
+    {
+        std::stringstream ss;
+        std::streambuf *buffer = std::cout.rdbuf();
+        std::cout.rdbuf(ss.rdbuf());
+        std::cout << *this;
+        std::string res(ss.str());
+        std::cout.rdbuf(buffer);
+        return res;
+    }
+
 } // namespace model::ltl

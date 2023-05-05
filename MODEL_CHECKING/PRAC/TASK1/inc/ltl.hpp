@@ -15,6 +15,7 @@
 #pragma once
 
 #include <iostream>
+#include <sstream>
 #include <memory>
 #include <vector>
 
@@ -97,6 +98,8 @@ namespace model::ltl
             return h;
         }
 
+        const std::string to_string() const;
+        
     private:
         Formula(Kind kind, const std::string &prop, const Formula *lhs, const Formula *rhs) : _kind(kind), _prop(prop), _lhs(lhs), _rhs(rhs) {}
 
