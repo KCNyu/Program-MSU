@@ -100,8 +100,6 @@ namespace model::translator
     AtomPermutation Translator::get_permuation_atoms(const AtomMap &atoms)
     {
         AtomPermutation permutations;
-        size_t rows_number = 1 << atoms.size();
-        permutations.reserve(rows_number);
 
         std::function<void(size_t, AtomMap)> generate_permutations_rec = [&](size_t index, AtomMap current_atoms)
         {
@@ -145,7 +143,7 @@ namespace model::translator
         using OpFunc = std::function<std::optional<bool>(const Formula &, const AtomMap &)>;
 
         std::unordered_map<Formula::Kind, OpFunc> operations = {
-            {Formula::ATOM, [this](const Formula &f, const AtomMap &atoms) -> std::optional<bool>
+            {Formula::ATOM, [](const Formula &f, const AtomMap &atoms) -> std::optional<bool>
              {
                  if (f.prop() == "true")
                  {
@@ -153,7 +151,7 @@ namespace model::translator
                  }
                  return atoms.at(f);
              }},
-            {Formula::X, [this](const Formula &f, const AtomMap &atoms) -> std::optional<bool>
+            {Formula::X, [](const Formula &f, const AtomMap &atoms) -> std::optional<bool>
              {
                  return atoms.at(f);
              }},
@@ -202,11 +200,11 @@ namespace model::translator
         using OpFunc = std::function<std::optional<bool>(const Formula &, const FormulaVec &)>;
 
         std::unordered_map<Formula::Kind, OpFunc> operations = {
-            {Formula::ATOM, [this](const Formula &formula, const FormulaVec &formulas) -> std::optional<bool>
+            {Formula::ATOM, [](const Formula &formula, const FormulaVec &formulas) -> std::optional<bool>
              {
                  return std::find(formulas.begin(), formulas.end(), formula) != formulas.end();
              }},
-            {Formula::X, [this](const Formula &formula, const FormulaVec &formulas) -> std::optional<bool>
+            {Formula::X, [](const Formula &formula, const FormulaVec &formulas) -> std::optional<bool>
              {
                  return std::find(formulas.begin(), formulas.end(), formula) != formulas.end();
              }},
@@ -475,7 +473,6 @@ namespace model::translator
         // get closure with negation
         FormulaSet closure_set = get_closure(simplified);
         FormulaSet closure;
-        closure.reserve(closure_set.size() * 2);
         closure.insert(closure_set.begin(), closure_set.end());
         std::transform(closure_set.begin(), closure_set.end(), std::inserter(closure, closure.end()),
                        [](const Formula &f)
