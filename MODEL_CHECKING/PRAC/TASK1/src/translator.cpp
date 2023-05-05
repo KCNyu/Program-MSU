@@ -52,7 +52,7 @@ namespace model::translator
         }
         }
     }
-    
+
     FormulaSet Translator::get_closure(const Formula &formula)
     {
         FormulaSet closure_set;
@@ -96,10 +96,10 @@ namespace model::translator
 
         return closure_set;
     }
-    
+
     AtomPermutation Translator::get_permuation_atoms(const AtomMap &atoms)
     {
-        std::vector<AtomMap> permutations;
+        AtomPermutation permutations;
         size_t rows_number = 1 << atoms.size();
         permutations.reserve(rows_number);
 
@@ -122,7 +122,7 @@ namespace model::translator
         generate_permutations_rec(0, atoms);
         return permutations;
     }
-    
+
     AtomPermutation Translator::get_atoms(const FormulaSet &closure)
     {
         AtomMap atoms;
@@ -134,46 +134,46 @@ namespace model::translator
                 {
                     continue;
                 }
-                atoms.insert({elem.prop(), false});
+                atoms[elem] = false;
             }
         }
         return get_permuation_atoms(atoms);
     }
-    
-    std::optional<bool> Translator::calculate(const Formula &formula, const AtomMap &atoms)
+
+    std::optional<bool> Translator::get_true_classic(const Formula &formula, const AtomMap &atoms)
     {
         using OpFunc = std::function<std::optional<bool>(const Formula &, const AtomMap &)>;
 
         std::unordered_map<Formula::Kind, OpFunc> operations = {
-            {Formula::ATOM, [this](const Formula &formula, const AtomMap &atoms) -> std::optional<bool>
+            {Formula::ATOM, [this](const Formula &f, const AtomMap &atoms) -> std::optional<bool>
              {
-                 if (formula.prop() == "true")
+                 if (f.prop() == "true")
+                 {
                      return true;
-                 if (formula.prop() == "false")
-                     return false;
-                 return atoms.at(formula.prop());
+                 }
+                 return atoms.at(f);
              }},
-            {Formula::X, [this](const Formula &formula, const AtomMap &atoms) -> std::optional<bool>
+            {Formula::X, [this](const Formula &f, const AtomMap &atoms) -> std::optional<bool>
              {
-                 return atoms.at(formula.prop());
+                 return atoms.at(f);
              }},
-            {Formula::NOT, [this](const Formula &formula, const AtomMap &atoms) -> std::optional<bool>
+            {Formula::NOT, [this](const Formula &f, const AtomMap &atoms) -> std::optional<bool>
              {
-                 auto arg_result = calculate(formula.lhs(), atoms);
+                 auto arg_result = get_true_classic(f.arg(), atoms);
                  return arg_result.has_value() ? std::optional<bool>(!*arg_result) : std::nullopt;
              }},
-            {Formula::AND, [this](const Formula &formula, const AtomMap &atoms) -> std::optional<bool>
+            {Formula::AND, [this](const Formula &f, const AtomMap &atoms) -> std::optional<bool>
              {
-                 auto lhs_result = calculate(formula.lhs(), atoms);
-                 auto rhs_result = calculate(formula.rhs(), atoms);
+                 auto lhs_result = get_true_classic(f.lhs(), atoms);
+                 auto rhs_result = get_true_classic(f.rhs(), atoms);
                  if (!lhs_result.has_value() || !rhs_result.has_value())
                      return std::nullopt;
                  return std::optional<bool>(*lhs_result && *rhs_result);
              }},
-            {Formula::OR, [this](const Formula &formula, const AtomMap &atoms) -> std::optional<bool>
+            {Formula::OR, [this](const Formula &f, const AtomMap &atoms) -> std::optional<bool>
              {
-                 auto lhs_result = calculate(formula.lhs(), atoms);
-                 auto rhs_result = calculate(formula.rhs(), atoms);
+                 auto lhs_result = get_true_classic(f.lhs(), atoms);
+                 auto rhs_result = get_true_classic(f.rhs(), atoms);
                  if (!lhs_result.has_value() || !rhs_result.has_value())
                      return std::nullopt;
                  return std::optional<bool>(*lhs_result || *rhs_result);
@@ -187,47 +187,68 @@ namespace model::translator
 
         return std::nullopt;
     }
-    
-    std::optional<bool> Translator::calculate(const Formula &formula, const FormulaMap &formulas)
+
+    FormulaVec Translator::get_classic(const FormulaSet &closure, const AtomMap &atoms)
     {
-        using OpFunc = std::function<std::optional<bool>(const Formula &, const FormulaMap &)>;
+        FormulaVec classic;
+        std::copy_if(closure.begin(), closure.end(), std::back_inserter(classic),
+                     [&](const Formula &elem)
+                     { return get_true_classic(elem, atoms).value_or(false); });
+        return classic;
+    }
+
+    std::optional<bool> Translator::get_true_state(const Formula &formula, const FormulaVec &formulas)
+    {
+        using OpFunc = std::function<std::optional<bool>(const Formula &, const FormulaVec &)>;
 
         std::unordered_map<Formula::Kind, OpFunc> operations = {
-            {Formula::ATOM, [this](const Formula &formula, const FormulaMap &formulas) -> std::optional<bool>
+            {Formula::ATOM, [this](const Formula &formula, const FormulaVec &formulas) -> std::optional<bool>
              {
-                 return formulas.find(formula.prop()) != formulas.end();
+                 return std::find(formulas.begin(), formulas.end(), formula) != formulas.end();
              }},
-            {Formula::X, [this](const Formula &formula, const FormulaMap &formulas) -> std::optional<bool>
+            {Formula::X, [this](const Formula &formula, const FormulaVec &formulas) -> std::optional<bool>
              {
-                 return formulas.find(formula.prop()) != formulas.end();
+                 return std::find(formulas.begin(), formulas.end(), formula) != formulas.end();
              }},
-            {Formula::NOT, [this](const Formula &formula, const FormulaMap &formulas) -> std::optional<bool>
+            {Formula::NOT, [this](const Formula &formula, const FormulaVec &formulas) -> std::optional<bool>
              {
-                 if (formulas.find(formula.prop()) != formulas.end())
+                 if (std::find(formulas.begin(), formulas.end(), formula) != formulas.end())
+                 {
                      return true;
-                 auto arg_result = calculate(formula.arg(), formulas);
+                 }
+                 auto arg_result = get_true_state(formula.arg(), formulas);
                  if (arg_result.has_value())
+                 {
                      return !*arg_result;
+                 }
                  return std::nullopt;
              }},
-            {Formula::AND, [this](const Formula &formula, const FormulaMap &formulas) -> std::optional<bool>
+            {Formula::AND, [this](const Formula &formula, const FormulaVec &formulas) -> std::optional<bool>
              {
-                 if (formulas.find(formula.prop()) != formulas.end())
+                 if (std::find(formulas.begin(), formulas.end(), formula) != formulas.end())
+                 {
                      return true;
-                 auto lhs_result = calculate(formula.lhs(), formulas);
-                 auto rhs_result = calculate(formula.rhs(), formulas);
+                 }
+                 auto lhs_result = get_true_state(formula.lhs(), formulas);
+                 auto rhs_result = get_true_state(formula.rhs(), formulas);
                  if (!lhs_result.has_value() || !rhs_result.has_value())
+                 {
                      return std::nullopt;
+                 }
                  return std::optional<bool>(*lhs_result && *rhs_result);
              }},
-            {Formula::OR, [this](const Formula &formula, const FormulaMap &formulas) -> std::optional<bool>
+            {Formula::OR, [this](const Formula &formula, const FormulaVec &formulas) -> std::optional<bool>
              {
-                 if (formulas.find(formula.prop()) != formulas.end())
+                 if (std::find(formulas.begin(), formulas.end(), formula) != formulas.end())
+                 {
                      return true;
-                 auto lhs_result = calculate(formula.lhs(), formulas);
-                 auto rhs_result = calculate(formula.rhs(), formulas);
+                 }
+                 auto lhs_result = get_true_state(formula.lhs(), formulas);
+                 auto rhs_result = get_true_state(formula.rhs(), formulas);
                  if (!lhs_result.has_value() || !rhs_result.has_value())
+                 {
                      return std::nullopt;
+                 }
                  return std::optional<bool>(*lhs_result || *rhs_result);
              }}};
 
@@ -239,205 +260,219 @@ namespace model::translator
 
         return std::nullopt;
     }
-    
-    FormulaMap Translator::get_classic(const FormulaSet &closure, const AtomMap &atoms)
-    {
-        FormulaMap classic;
-        for (const auto &elem : closure)
-        {
-            if (calculate(elem, atoms).value_or(false))
-            {
-                classic.insert({elem.prop(), elem});
-            }
-        }
-        return classic;
-    }
 
-    StateMap Translator::get_local_states(const FormulaSet &closure, size_t &states_number, const FormulaMap &true_formulas)
+    StateVec Translator::get_local_states(const FormulaSet &closure, const FormulaVec &classic)
     {
-        StateMap local_states;
-        local_states.insert({"s" + std::to_string(states_number++), true_formulas});
+        StateVec local_states;
+        local_states.push_back(classic);
 
         for (const auto &elem : closure)
         {
-            StateMap additional_states;
+            StateVec with_until_states;
             for (auto &local_state : local_states)
             {
-                if (local_state.second.find(elem.prop()) != local_state.second.end())
-                    continue;
-
-                if (elem.kind() == Formula::U)
+                if (std::find(local_state.begin(), local_state.end(), elem) != local_state.end())
                 {
-                    handle_until_case(elem, local_state, additional_states, states_number);
                     continue;
                 }
-
-                auto closure_elem_value = calculate(elem, local_state.second);
-                if (closure_elem_value.value_or(false))
+                else if (elem.kind() == Formula::U)
                 {
-                    local_state.second.insert({elem.prop(), elem});
+                    handle_until_case(elem, local_state, with_until_states);
+                }
+                else if (get_true_state(elem, local_state).value_or(false))
+                {
+                    local_state.push_back(elem);
                 }
             }
-            local_states.insert(additional_states.begin(), additional_states.end());
+            std::move(std::begin(with_until_states), std::end(with_until_states), std::back_inserter(local_states));
         }
         return local_states;
     }
 
-    void Translator::handle_until_case(const Formula &closure_elem, State &local_state, StateMap &additional_states, size_t &states_number)
+    void Translator::handle_until_case(const Formula &elem, FormulaVec &local_state, StateVec &with_until_states)
     {
-        if (local_state.second.find(closure_elem.rhs().prop()) != local_state.second.end())
+        if (std::find(local_state.begin(), local_state.end(), elem.rhs()) != local_state.end())
         {
-            local_state.second.insert({closure_elem.prop(), closure_elem});
+            local_state.push_back(elem);
         }
-        else if (local_state.second.find(closure_elem.lhs().prop()) != local_state.second.end())
+        else if (std::find(local_state.begin(), local_state.end(), elem.lhs()) != local_state.end())
         {
-            auto new_state_name = "s" + std::to_string(states_number++);
-            additional_states.insert({new_state_name, local_state.second});
-            additional_states[new_state_name].insert({closure_elem.prop(), closure_elem});
-            auto neg_until = !closure_elem;
-            local_state.second.insert({neg_until.prop(), neg_until});
+            with_until_states.push_back(local_state);
+            with_until_states.back().push_back(elem);
+
+            Formula neg_elem = !elem;
+            local_state.push_back(neg_elem);
         }
         else
         {
-            auto neg_until = !closure_elem;
-            local_state.second.insert({neg_until.prop(), neg_until});
+            Formula neg_elem = !elem;
+            local_state.push_back(neg_elem);
         }
     }
-    
-    StateMap Translator::get_states(const FormulaSet &closure)
+
+    StateVec Translator::get_states(const FormulaSet &closure)
     {
         AtomPermutation atoms = get_atoms(closure);
 
-        std::vector<StateMap> local_states_vector;
-        local_states_vector.reserve(atoms.size() * atoms.size());
-        size_t states_number = 1;
-        std::transform(atoms.begin(), atoms.end(), std::back_inserter(local_states_vector), [&](const auto &av)
-                       {
-        FormulaMap classic = get_classic(closure, av);
-        return get_local_states(closure, states_number, classic); });
+        StateVec states;
 
-        StateMap states;
-        for (const auto &local_states : local_states_vector)
+        for (const auto &atom : atoms)
         {
-            states.insert(local_states.begin(), local_states.end());
-        }
+            FormulaVec classic = get_classic(closure, atom);
+            StateVec local_states = get_local_states(closure, classic);
 
+            std::move(std::begin(local_states), std::end(local_states), std::back_inserter(states));
+        }
         return states;
     }
-    
-    States Translator::get_initials(const StateMap &states, const Formula &f)
+
+    States Translator::get_initials(const StateVec &states, const Formula &f)
     {
-        std::vector<std::string> initials;
-        for (const auto &state : states)
-        {
-            if (state.second.find(f.prop()) != state.second.end())
-                initials.push_back(state.first);
-        }
+        States initials;
+        size_t current_ind = 0;
+
+        std::transform(states.begin(), states.end(), std::back_inserter(initials), [&](const auto &state)
+                       {
+                           ++current_ind;
+                           if (std::find(state.begin(), state.end(), f) != state.end())
+                           {
+                               return get_state_name(current_ind);
+                           }
+                           return std::string{}; });
+
+        initials.erase(std::remove_if(initials.begin(), initials.end(), [](const std::string &s)
+                                      { return s.empty(); }),
+                       initials.end());
 
         return initials;
     }
-    
-    FinalStates Translator::get_finals(const StateMap &states, const Formula &f, const FormulaSet &closure)
+
+    FinalStates Translator::get_finals(const StateVec &states, const Formula &f, const FormulaSet &closure)
     {
-        FinalStates final_states;
-        std::map<int, Formula> u_formulas;
-        size_t current_ind = 0;
-        for (const auto &f_closure : closure)
-        {
-            if (f_closure.kind() == Formula::U)
-            {
-                u_formulas.insert({current_ind, f_closure});
-                current_ind++;
-            }
-        }
+        FinalStates finals;
 
-        for (const auto &u_formula : u_formulas)
+        std::for_each(closure.begin(), closure.end(), [&](const Formula &elem)
+                      {
+        if (elem.kind() == Formula::U)
         {
-            std::vector<std::string> final_statest_subset;
-            for (const auto &state : states)
-            {
-                if (state.second.find(u_formula.second.prop()) == state.second.end() ||
-                    state.second.find(u_formula.second.rhs().prop()) != state.second.end())
+            States final;
+            size_t current_ind = 0;
+
+            std::transform(states.begin(), states.end(), std::back_inserter(final), [&](const auto &state) {
+                ++current_ind;
+                if (std::find(state.begin(), state.end(), elem) == state.end() || std::find(state.begin(), state.end(), elem.rhs()) != state.end())
                 {
-                    final_statest_subset.push_back(state.first);
+                    return get_state_name(current_ind);
                 }
-            }
-            final_states.insert({u_formula.first, final_statest_subset});
-        }
+                return std::string{};
+            });
 
-        return final_states;
+            final.erase(std::remove_if(final.begin(), final.end(), [](const std::string &s) { return s.empty(); }), final.end());
+
+            finals.push_back(final);
+        } });
+
+        return finals;
     }
 
-    std::set<std::string> get_symbol(const std::map<std::string, Formula> &state)
+    std::set<std::string> Translator::get_symbol(const FormulaVec &state)
     {
         std::set<std::string> symbol;
-        for (const auto &f_state : state)
-        {
-            if (f_state.second.kind() == Formula::ATOM &&
-                f_state.second.prop() != "true" && f_state.second.prop() != "false")
-                symbol.insert(f_state.first);
-        }
+
+        std::transform(state.begin(), state.end(), std::inserter(symbol, symbol.end()),
+                       [&](const Formula &f)
+                       {
+                           return (f.kind() == Formula::ATOM && f.prop() != "true") ? f.prop() : "";
+                       });
+
+        symbol.erase("");
+
         return symbol;
     }
 
-    bool check_obligations(const std::vector<Formula> &u_formulas,
-                           const std::vector<Formula> &x_formulas,
-                           const std::map<std::string, Formula> &state_from,
-                           const std::map<std::string, Formula> &state_to)
+    // Conditions for the implementation of obligations
+    bool Translator::is_satisfyied(const FormulaVec &u_formulas, const FormulaVec &x_formulas, const FormulaVec &source, const FormulaVec &target)
     {
-        for (const auto &x_f : x_formulas)
+        auto x_satisfy = [&](const Formula &x_f)
         {
-            if ((state_from.find(x_f.prop()) == state_from.end()) != (state_to.find(x_f.lhs().prop()) == state_to.end()))
-                return false;
-        }
-        for (const auto &u_f : u_formulas)
+            bool left = std::find(source.begin(), source.end(), x_f) != source.end();
+            bool right = std::find(target.begin(), target.end(), x_f.arg()) != target.end();
+            return left == right;
+        };
+
+        auto u_satisfy = [&](const Formula &u_f)
         {
-            if (not((state_from.find(u_f.prop()) != state_from.end()) ==
-                    ((state_from.find(u_f.rhs().prop()) != state_from.end()) || ((state_from.find(u_f.lhs().prop()) != state_from.end()) &&
-                                                                                 (state_to.find(u_f.prop()) != state_to.end())))))
-                return false;
-        }
-        return true;
+            bool left = std::find(source.begin(), source.end(), u_f) != source.end();
+            bool right = std::find(source.begin(), source.end(), u_f.rhs()) != source.end() ||
+                         (std::find(target.begin(), target.end(), u_f) != target.end() && std::find(source.begin(), source.end(), u_f.lhs()) != source.end());
+            return left == right;
+        };
+
+        return std::all_of(x_formulas.begin(), x_formulas.end(), x_satisfy) &&
+               std::all_of(u_formulas.begin(), u_formulas.end(), u_satisfy);
     }
 
-    std::vector<std::tuple<std::string, std::set<std::string>, std::string>>
-    make_transitions(const std::map<std::string, std::map<std::string, Formula>> &states,
-                     const FormulaSet &closure)
+    Transitions Translator::get_transitions(const StateVec &states, const FormulaSet &closure)
     {
-        std::vector<std::tuple<std::string, std::set<std::string>, std::string>> transitions;
-        std::vector<Formula> u_formulas, x_formulas;
+        FormulaVec x_formulas, u_formulas;
 
-        // find all functions with U and X
-        for (const auto &f_closure : closure)
-        {
-            if (f_closure.kind() == Formula::U)
-                u_formulas.push_back(f_closure);
-            if (f_closure.kind() == Formula::X)
-                x_formulas.push_back(f_closure);
-        }
+        std::copy_if(closure.begin(), closure.end(), std::back_inserter(x_formulas),
+                     [](const Formula &f)
+                     { return f.kind() == Formula::X; });
 
-        for (const auto &state_from : states)
+        std::copy_if(closure.begin(), closure.end(), std::back_inserter(u_formulas),
+                     [](const Formula &f)
+                     { return f.kind() == Formula::U; });
+
+        Transitions transitions;
+
+        size_t source_ind = 0;
+        for (const auto &source : states)
         {
-            auto symbol = get_symbol(state_from.second);
-            for (const auto &state_to : states)
+            source_ind++;
+            size_t target_ind = 0;
+            for (const auto &target : states)
             {
-                if (check_obligations(u_formulas, x_formulas, state_from.second, state_to.second))
+                target_ind++;
+                if (is_satisfyied(u_formulas, x_formulas, source, target))
                 {
-                    transitions.emplace_back(state_from.first, symbol, state_to.first);
+                    transitions.push_back({get_state_name(source_ind), get_symbol(source), get_state_name(target_ind)});
                 }
             }
         }
-
         return transitions;
+    }
+
+    const Automaton Translator::get_automaton(const StateVec &states, const States &initials, const FinalStates &finals, const Transitions &transitions)
+    {
+        Automaton automaton;
+
+        size_t current_ind = 1;
+        std::for_each(states.begin(), states.end(), [&](const auto &)
+                      { automaton.add_state(get_state_name(current_ind++)); });
+
+        std::for_each(initials.begin(), initials.end(), [&](const auto &s)
+                      { automaton.set_initial(s); });
+
+        size_t final_ind = 0;
+        std::for_each(finals.begin(), finals.end(), [&](const auto &final)
+                      {
+        std::for_each(final.begin(), final.end(), [&](const auto &s) {
+            automaton.set_final(final_ind, s);
+        });
+        ++final_ind; });
+
+        std::for_each(transitions.begin(), transitions.end(), [&](const auto &t)
+                      { automaton.add_trans(std::get<0>(t), std::get<1>(t), std::get<2>(t)); });
+
+        return automaton;
     }
 
     const Automaton Translator::translate(const Formula &formula)
     {
         const Formula &simplified = simplify(formula);
 
-        std::cout << "Translating formula: " << formula << std::endl;
-        std::cout << "Simplified formula: " << simplified << std::endl;
-
+        // get closure with negation
         FormulaSet closure_set = get_closure(simplified);
         FormulaSet closure;
         closure.reserve(closure_set.size() * 2);
@@ -446,62 +481,12 @@ namespace model::translator
                        [](const Formula &f)
                        { return !f; });
 
-        StateMap states = get_states(closure);
-
-        std::cout << "States:" << std::endl;
-        for (const auto &state : states)
-        {
-            std::cout << state.first << ": ";
-            for (const auto &formulas : state.second)
-            {
-                std::cout << formulas.first << ", ";
-            }
-            std::cout << std::endl;
-        }
+        StateVec states = get_states(closure);
 
         States initials = get_initials(states, simplified);
-        std::cout << "Initials: ";
-        for (const auto &initial : initials)
-        {
-            std::cout << initial << ", ";
-        }
-        std::cout << std::endl;
-
         FinalStates finals = get_finals(states, simplified, closure);
-        std::cout << "Finals: " << std::endl;
-        for (const auto &final : finals)
-        {
-            std::cout << final.first << ": ";
-            for (const auto &final_state : final.second)
-            {
-                std::cout << final_state << ", ";
-            }
-            std::cout << std::endl;
-        }
-        auto transitions = make_transitions(states, closure);
+        Transitions transitions = get_transitions(states, closure);
 
-        Automaton automaton;
-        for (const auto &s : states)
-        {
-            automaton.add_state(s.first);
-        }
-        for (const auto &s : initials)
-        {
-            automaton.set_initial(s);
-        }
-        for (const auto &f_subset : finals)
-        {
-            for (const auto &s : f_subset.second)
-            {
-                automaton.set_final(f_subset.first, s);
-            }
-        }
-        for (const auto &t : transitions)
-        {
-            automaton.add_trans(std::get<0>(t), std::get<1>(t), std::get<2>(t));
-        }
-        // std::cout << "Automaton: " << std::endl;
-        // std::cout << automaton << std::endl;
-        return automaton;
+        return get_automaton(states, initials, finals, transitions);
     }
 } // namespace model::translator

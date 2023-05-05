@@ -87,6 +87,7 @@ namespace model::ltl
         const Formula &lhs() const { return *_lhs; }
         const Formula &rhs() const { return *_rhs; }
 
+        // Hash function for Formula save in unordered_set or unordered_map
         size_t hash() const
         {
             std::hash<std::string> string_hasher;
@@ -97,17 +98,24 @@ namespace model::ltl
             h ^= std::hash<const Formula *>{}(_rhs) << 4;
             return h;
         }
+        // Compare function for Formula save in set or map
+        bool operator<(const Formula &other) const
+        {
+            return hash() < other.hash();
+        }
+        bool operator>(const Formula &other) const
+        {
+            return hash() > other.hash();
+        }
 
         const std::string to_string() const;
-        
+
     private:
         Formula(Kind kind, const std::string &prop, const Formula *lhs, const Formula *rhs) : _kind(kind), _prop(prop), _lhs(lhs), _rhs(rhs) {}
 
         Formula(const std::string &prop) : Formula(ATOM, prop, nullptr, nullptr) {}
 
         Formula(Kind kind, const Formula *arg) : Formula(kind, "", arg, nullptr) {}
-
-        Formula(Kind kind, const std::string &prop, const Formula *arg) : Formula(kind, prop, arg, nullptr) {}
 
         Formula(Kind kind, const Formula *lhs, const Formula *rhs) : Formula(kind, "", lhs, rhs) {}
 
@@ -127,22 +135,22 @@ namespace model::ltl
 
     inline const Formula &Formula::operator!() const
     {
-        return alloc(new Formula(NOT, "!(" + this->prop() + ")", this));
+        return alloc(new Formula(NOT, this));
     }
 
     inline const Formula &Formula::operator&&(const Formula &rhs) const
     {
-        return alloc(new Formula(AND, "(" + this->prop() + ")&&(" + rhs.prop() + ")", this, &rhs));
+        return alloc(new Formula(AND, this, &rhs));
     }
 
     inline const Formula &Formula::operator||(const Formula &rhs) const
     {
-        return alloc(new Formula(OR, "(" + this->prop() + ")||(" + rhs.prop() + ")", this, &rhs));
+        return alloc(new Formula(OR, this, &rhs));
     }
 
     inline const Formula &Formula::operator>>(const Formula &rhs) const
     {
-        return alloc(new Formula(IMPL, "(" + this->prop() + ")->(" + rhs.prop() + ")", this, &rhs));
+        return alloc(new Formula(IMPL, this, &rhs));
     }
 
     inline const Formula &P(const std::string &prop)
@@ -152,27 +160,27 @@ namespace model::ltl
 
     inline const Formula &X(const Formula &arg)
     {
-        return Formula::alloc(new Formula(Formula::X, "X(" + arg.prop() + ")", &arg));
+        return Formula::alloc(new Formula(Formula::X, &arg));
     }
 
     inline const Formula &G(const Formula &arg)
     {
-        return Formula::alloc(new Formula(Formula::G, "G(" + arg.prop() + ")", &arg));
+        return Formula::alloc(new Formula(Formula::G, &arg));
     }
 
     inline const Formula &F(const Formula &arg)
     {
-        return Formula::alloc(new Formula(Formula::F, "F(" + arg.prop() + ")", &arg));
+        return Formula::alloc(new Formula(Formula::F, &arg));
     }
 
     inline const Formula &U(const Formula &lhs, const Formula &rhs)
     {
-        return Formula::alloc(new Formula(Formula::U, "(" + lhs.prop() + ")U(" + rhs.prop() + ")", &lhs, &rhs));
+        return Formula::alloc(new Formula(Formula::U, &lhs, &rhs));
     }
 
     inline const Formula &R(const Formula &lhs, const Formula &rhs)
     {
-        return Formula::alloc(new Formula(Formula::R, "(" + lhs.prop() + ")R(" + rhs.prop() + ")", &lhs, &rhs));
+        return Formula::alloc(new Formula(Formula::R, &lhs, &rhs));
     }
 
     inline const Formula &TRUE()

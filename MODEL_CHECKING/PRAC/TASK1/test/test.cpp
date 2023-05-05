@@ -51,7 +51,16 @@ ColoredStream error(RED);
 void FormulaSpec(const Formula &formula, const Automaton &expectedAutomaton)
 {
     const Automaton actualAutomaton = Translator().translate(formula);
-    if (actualAutomaton != expectedAutomaton)
+    if (actualAutomaton == expectedAutomaton)
+    {
+        info << "Formula:";
+        text << formula;
+        info << "Automaton:";
+        success << actualAutomaton;
+        info << "Test result:";
+        success << "Test passed!";
+    }
+    else
     {
         info << "Formula:";
         text << formula;
@@ -61,15 +70,6 @@ void FormulaSpec(const Formula &formula, const Automaton &expectedAutomaton)
         error << actualAutomaton;
         info << "Test result:";
         error << "Test failed!";
-    }
-    else
-    {
-        info << "Formula:";
-        text << formula;
-        info << "Automaton:";
-        success << actualAutomaton;
-        info << "Test result:";
-        success << "Test passed!";
     }
 }
 
@@ -85,10 +85,10 @@ void Test1()
     automaton.set_final(0, "s1", "s2", "s4", "s6");
 
     automaton.add_trans_s("s1", {}, {"s1", "s2", "s3", "s4", "s5", "s6"});
-    automaton.add_trans_s("s2", {"q"}, {"s1", "s2", "s4"});
-    automaton.add_trans_s("s3", {"q"}, {"s3", "s5", "s6"});
-    automaton.add_trans_s("s4", {"p"}, {"s1", "s2", "s4"});
-    automaton.add_trans_s("s5", {"p"}, {"s3", "s5", "s6"});
+    automaton.add_trans_s("s2", {"p"}, {"s1", "s2", "s4"});
+    automaton.add_trans_s("s3", {"p"}, {"s3", "s5", "s6"});
+    automaton.add_trans_s("s4", {"q"}, {"s1", "s2", "s4"});
+    automaton.add_trans_s("s5", {"q"}, {"s3", "s5", "s6"});
     automaton.add_trans_s("s6", {"p", "q"}, {"s1", "s2", "s3", "s4", "s5", "s6"});
 
     FormulaSpec(formula, automaton);
@@ -97,6 +97,27 @@ void Test2()
 {
     const Formula &formula = G(P("p") >> X(P("q")));
     Automaton automaton;
+
+    automaton.add_state("s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "s12", "s13", "s14");
+
+    automaton.set_initial("s1", "s4", "s6", "s8", "s11", "s13");
+
+    automaton.set_final(0, "s1", "s3", "s4", "s6", "s8", "s10", "s11", "s13");
+
+    automaton.add_trans_s("s1", {}, {"s1", "s4", "s6"});
+    automaton.add_trans_s("s2", {}, {"s2", "s3", "s5", "s7"});
+    automaton.add_trans_s("s3", {"p"}, {"s1", "s2", "s3", "s4", "s5", "s6", "s7"});
+    automaton.add_trans_s("s4", {}, {"s8", "s11", "s13"});
+    automaton.add_trans_s("s5", {}, {"s9", "s10", "s12", "s14"});
+    automaton.add_trans_s("s6", {"p"}, {"s8", "s11", "s13"});
+    automaton.add_trans_s("s7", {"p"}, {"s9", "s10", "s12", "s14"});
+    automaton.add_trans_s("s8", {"q"}, {"s1","s4","s6"});
+    automaton.add_trans_s("s9", {"q"}, {"s2","s3","s5","s7"});
+    automaton.add_trans_s("s10", {"p","q"}, {"s1","s2","s3","s4","s5","s6","s7"});
+    automaton.add_trans_s("s11", {"q"}, {"s8","s11","s13"});
+    automaton.add_trans_s("s12", {"q"}, {"s9","s10","s12","s14"});
+    automaton.add_trans_s("s13", {"p","q"}, {"s8","s11","s13"});
+    automaton.add_trans_s("s14", {"p","q"}, {"s9","s10","s12","s14"});
 
     FormulaSpec(formula, automaton);
 }

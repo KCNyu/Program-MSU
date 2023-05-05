@@ -71,7 +71,6 @@ namespace model::fsm
         void set_initial(StateLabels &&...state_labels);
         template <typename... StateLabels>
         void set_final(unsigned final_set_index, StateLabels &&...state_labels);
-        // void set_final(const std::string &state_label, unsigned final_set_index);
 
         void add_trans(
             const std::string &source,
@@ -82,13 +81,10 @@ namespace model::fsm
                          const std::set<std::string> &symbol,
                          const std::vector<std::string> &targets);
 
+        //@TODO: implement actual automaton equivalence checking (not just comparing the states)
         bool operator==(const Automaton &rhs) const
         {
             return _states == rhs._states && _initial_states == rhs._initial_states && _final_states == rhs._final_states && _transitions == rhs._transitions;
-        }
-        bool operator!=(const Automaton &rhs) const
-        {
-            return !(*this == rhs); 
         }
 
     private:

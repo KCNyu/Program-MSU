@@ -14,34 +14,50 @@ namespace model::translator
     using namespace model::fsm;
 
     using FormulaSet = std::unordered_set<Formula>;
-    using AtomMap = std::map<std::string, bool>;
+    using FormulaVec = std::vector<Formula>;
+
+    using AtomMap = std::map<Formula, bool>;
     using AtomPermutation = std::vector<AtomMap>;
-    using FormulaMap = std::map<std::string, Formula>;
-    using State = std::pair<const std::string, FormulaMap>;
+
+    using StateVec = std::vector<FormulaVec>;
+
     using States = std::vector<std::string>;
-    using FinalStates = std::map<int, States>;
-    using StateMap = std::map<std::string, FormulaMap>;
+    using FinalStates = std::vector<States>;
+    // source, symbols, target
+    using Transitions = std::vector<std::tuple<std::string, std::set<std::string>, std::string>>;
 
     class Translator
     {
     private:
+        AtomPermutation get_atoms(const FormulaSet &closure);
         AtomPermutation get_permuation_atoms(const AtomMap &atoms);
-        FormulaMap get_classic(const FormulaSet &closure, const AtomMap &atoms);
-        StateMap get_local_states(const FormulaSet &closure, size_t &states_number, const FormulaMap &true_formulas);
-        std::optional<bool> calculate(const Formula &formula, const AtomMap &atoms);
-        std::optional<bool> calculate(const Formula &formula, const FormulaMap &formulas);
-        void handle_until_case(const Formula &closure_elem, State &local_state, StateMap &additional_states, size_t &states_number);
+
+        FormulaVec get_classic(const FormulaSet &closure, const AtomMap &atoms);
+        std::optional<bool> get_true_classic(const Formula &formula, const AtomMap &atoms);
+
+        StateVec get_local_states(const FormulaSet &closure, const FormulaVec &classic);
+        std::optional<bool> get_true_state(const Formula &formula, const FormulaVec &formulas);
+        void handle_until_case(const Formula &elem, FormulaVec &local_state, StateVec &with_until_states);
+
+        std::set<std::string> get_symbol(const FormulaVec &state);
+        bool is_satisfyied(const FormulaVec &u_formulas, const FormulaVec &x_formulas, const FormulaVec &source, const FormulaVec &target);
+
+        std::string get_state_name(const size_t &index) const { return _state_prefix + std::to_string(index); }
+        std::string _state_prefix;
 
     protected:
         const Formula &simplify(const Formula &formula);
         FormulaSet get_closure(const Formula &formula);
-        AtomPermutation get_atoms(const FormulaSet &closure);
-        StateMap get_states(const FormulaSet &closure);
-        States get_initials(const StateMap &states, const Formula &f);
-        FinalStates get_finals(const StateMap &states, const Formula &f, const FormulaSet &closure);
+        StateVec get_states(const FormulaSet &closure);
+
+        States get_initials(const StateVec &states, const Formula &f);
+        FinalStates get_finals(const StateVec &states, const Formula &f, const FormulaSet &closure);
+        Transitions get_transitions(const StateVec &states, const FormulaSet &closure);
+
+        const Automaton get_automaton(const StateVec &states, const States &initials, const FinalStates &finals, const Transitions &transitions);
 
     public:
-        Translator() {}
+        Translator(std::string prefix = "s") : _state_prefix(prefix) {}
         ~Translator() {}
         const Automaton translate(const Formula &formula);
     };
