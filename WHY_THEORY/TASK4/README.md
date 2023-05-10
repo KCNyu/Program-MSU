@@ -38,10 +38,48 @@ To generate test coverage report, run:
 make report
 ```
 
+```bash
+Processing file TASK4/main.c
+Processing file TASK4/map.c
+Writing directory view page.
+Overall coverage rate:
+  lines......: 95.0% (95 of 100 lines)
+  functions..: 100.0% (7 of 7 functions)
+```
+
 ## Static Code Analysis
 
 To run static code analysis, run:
 
 ```bash
 make analyze
+```
+
+```bash
+gcc -c -o map.o map.c -I. -fprofile-arcs -ftest-coverage -g
+In file included from map.c:3:
+In file included from ./map.h:4:
+./maptypes.h:15:28: warning: unknown attribute 'noembed' ignored [-Wunknown-attributes]
+    Key key __attribute__((noembed));
+                           ^~~~~~~
+1 warning generated.
+gcc -c -o main.o main.c -I. -fprofile-arcs -ftest-coverage -g
+In file included from main.c:1:
+In file included from ./map.h:4:
+./maptypes.h:15:28: warning: unknown attribute 'noembed' ignored [-Wunknown-attributes]
+    Key key __attribute__((noembed));
+                           ^~~~~~~
+1 warning generated.
+gcc -o main map.o main.o -I. -fprofile-arcs -ftest-coverage -g
+cppcheck --enable=all --suppress=missingIncludeSystem .
+Checking main.c ...
+1/2 files checked 68% done
+Checking map.c ...
+map.c:33:31: style: Parameter 'key' can be declared as pointer to const [constParameter]
+int addElement(Map *map, Key *key, Value *value)
+                              ^
+map.c:33:43: style: Parameter 'value' can be declared as pointer to const [constParameter]
+int addElement(Map *map, Key *key, Value *value)
+                                          ^
+2/2 files checked 100% done
 ```
