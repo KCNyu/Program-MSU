@@ -28,9 +28,13 @@ void check(char *test_name, int expected, int obtained, const char *format, ...)
 
 int main()
 {
+    // Initialize a map with negative capacity
+    Map neg_map;
+    int result = initializeMap(&neg_map, -1);
+    check("Initialization with negative capacity", 0, result, "Map initialized with capacity: %d\n", -1);
     // Initialize a map
     Map map;
-    int result = initializeMap(&map, 10);
+    result = initializeMap(&map, 2);
     check("Initialization", 0, result, "Map initialized with capacity: %d\n", 10);
 
     // Test adding elements
@@ -52,9 +56,15 @@ int main()
     result = getElement(&map, &key2, &retrieved_value);
     check("Getting element2", 1, result, "Retrieved value: %d,%d\n", retrieved_value.c, retrieved_value.d);
 
-    // Test removing an element
-    result = removeElement(&map, &key1, NULL);
-    check("Removing element1", 1, result, "Element with key: %d,%d removed\n", key1.a, key1.b);
+    // Test removing an element and getting it
+    Value removed_value;
+    result = removeElement(&map, &key1, &removed_value);
+    check("Removing element1", 1, result, "Element removed with key: %d,%d and value: %d,%d\n", key1.a, key1.b, removed_value.c, removed_value.d);
+    
+    // Test removing a non-existent element
+    Key non_key = {0, 0};
+    result = removeElement(&map, &non_key, &removed_value);
+    check("Removing non-existent element1", 0, result, "No element removed\n");
 
     result = getElement(&map, &key1, &retrieved_value);
     check("Getting removed element1", 0, result, "No value retrieved\n");
@@ -70,6 +80,12 @@ int main()
 
     result = getElement(&map, &key3, &retrieved_value);
     check("Getting added element3", 1, result, "Retrieved value: %d,%d\n", retrieved_value.c, retrieved_value.d);
+
+    // Test cannot add element due to full map
+    Key key4 = {13, 14};
+    Value value4 = {15, 16};
+    result = addElement(&map, &key4, &value4);
+    check("Adding element4", 0, result, "No element added\n");
 
     // Finalize the map
     finalizeMap(&map);

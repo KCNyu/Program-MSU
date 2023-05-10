@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-I.
+CFLAGS=-I. -fprofile-arcs -ftest-coverage -g
 
 _OBJ = map.o main.o
 OBJ = $(patsubst %,%,$(_OBJ))
@@ -12,7 +12,15 @@ default: main
 main: $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS)
 
-.PHONY: clean
+report: main
+	./main
+	lcov --capture --directory . --output-file coverage.info
+	genhtml coverage.info --output-directory out
+
+check: main
+	valgrind --leak-check=full ./main
+
+.PHONY: clean report
 
 clean:
-	rm -f *.o main
+	rm -rf *.o *.gcov *.gcno *.info *.gcda main out/
