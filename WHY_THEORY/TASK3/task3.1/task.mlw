@@ -1,0 +1,226 @@
+module CMemory
+    use import int.Int
+    use import map.Map
+
+    type pointer 'a
+
+    type alloc_table 'a
+
+    type memory 'a = map (pointer 'a) 'a
+
+    function offset_min (p : pointer 'a) (a : alloc_table 'a) : int
+
+    function offset_max (p : pointer 'a) (a : alloc_table 'a) : int
+
+    predicate same_block (p1 : pointer 'a) (p2 : pointer 'a)
+
+    predicate is_alloc (p : pointer 'a) (a : alloc_table 'a) = (offset_min p a) <= (offset_max p a)
+
+    predicate valid (p : pointer 'a) (a : alloc_table 'a) = (offset_min p a) <= 0 && (offset_max p a) >= 0 
+
+    predicate valid_range (p : pointer 'a) (a : alloc_table 'a) (left : int) (right : int) =
+        left >= (offset_min p a) && right <=  (offset_max p a)
+    
+    function select (p : pointer 'a) (m : memory 'a) : 'a
+
+    function store (p : pointer 'a) (m : memory 'a) (v : 'a) : memory 'a
+
+    function shift (p : pointer 'a) (v : int) : pointer 'a
+
+    function sub_pointer (p1 : pointer 'a) (p2 : pointer 'a) : int
+
+    axiom valid_sub:
+        forall p1 p2 : pointer 'a, a : alloc_table 'a.
+            (same_block p1 p2) 
+                -> (sub_pointer p1 p2 = (offset_min p2 a) - (offset_min p1 a))
+    
+    axiom valid_select:
+        forall a : alloc_table 'a, m : memory 'a, p : pointer 'a.
+                (valid p a) -> (select p m = get m p)
+    
+    axiom valid_store:
+         forall a : alloc_table 'a, m : memory 'a, p : pointer 'a, v : 'a.
+            (valid p a) -> (store p m v = set m p v)
+
+    axiom shift_min:
+        forall p : pointer 'a, a : alloc_table 'a, v : int.
+            (offset_min (shift p v) a) = (offset_min p a) - v
+    
+    axiom shift_max:
+        forall p : pointer 'a, a : alloc_table 'a, v : int.
+            (offset_max (shift p v) a) = (offset_max p a) - v
+
+    axiom same_same:
+        forall p : pointer 'a.
+            (same_block p p) <-> true
+    
+    axiom same_eq:
+        forall p1, p2 : pointer 'a.
+            (same_block p1 p2) <-> (same_block p2 p1)
+    
+    axiom same_tr:
+        forall p1, p2, p3 : pointer 'a. 
+            (same_block p1 p2) && (same_block p2 p3) -> (same_block p1 p3)
+
+    axiom shift_same:
+        forall p1, p2 : pointer 'a, v : int.
+            (same_block (shift p1 v) p2) <-> (same_block p1 p2)
+
+    val acc (p : pointer 'a) (m : memory 'a) (a : alloc_table 'a) : 'a
+        requires {valid p a}
+        ensures {result = select p m}
+
+    val upd (p : pointer 'a) (m : memory 'a) (a : alloc_table 'a) (v : 'a) : memory 'a
+        requires {valid p a}
+        ensures {result = store p m v}
+
+    val shft (p : pointer 'a) (v : int) : pointer 'a
+        ensures {result = shift p v}
+end
+module Graph
+    use import CMemory
+    use import int.Int
+    use import ref.Ref
+
+    type vertex = {
+        v_payload: int;
+        v_existent: int;
+    }
+
+    type edge = {
+        e_from: int;
+        e_to: int;
+        e_existent: int;
+    }
+
+    type graph = {
+        g_vertices: pointer vertex;
+        g_vsize: int;
+        g_edges: pointer edge;
+        g_ecnt: int;
+        g_esize: int;
+    }
+
+    predicate is_vertex (g: pointer graph) (m_g: memory graph) (v: int) =
+        exists gh: graph. 
+            gh = (select g m_g) /\ 0 <= v < gh.g_vsize
+    
+    predicate edge_valid (g: pointer graph)  (m_g: memory graph) (m_e: memory edge) (m_v: memory vertex) (k: int) =
+        exists gh: graph, e: edge, v_from: vertex,  v_to: vertex. 
+            ((gh = (select g m_g)) /\ 
+            (e = (select (shift gh.g_edges k) m_e)) /\ 
+            (v_from = (select (shift gh.g_vertices e.e_from) m_v)) /\ 
+            (v_to = (select (shift gh.g_vertices e.e_to) m_v)) /\
+            (e.e_existent > 0)) 
+            -> 
+            ((is_vertex  g m_g e.e_from) /\ 
+            (is_vertex  g m_g e.e_to) /\
+            (v_from.v_existent > 0) /\ 
+            (v_to.v_existent > 0))
+    
+    predicate edges_valid (g: pointer graph) (m_g: memory graph) (m_e: memory edge) (m_v: memory vertex) (n: int) =
+        forall k: int. 
+            0 <= k < n -> (edge_valid g m_g m_e m_v k)
+
+    predicate graph_valid (g: pointer graph) (m_g: memory graph) (m_e: memory edge) (m_v: memory vertex) (a_v: alloc_table vertex) (a_e: alloc_table edge) =
+        exists gh: graph. 
+            (gh = (select g m_g)) /\
+            (gh.g_vsize > 0) /\ 
+            (gh.g_esize > 0) /\ 
+            (gh.g_esize >= gh.g_ecnt >= 0) /\
+            (forall k: int. 0 <= k < gh.g_vsize -> valid (shift gh.g_vertices k) a_v) /\
+            (forall k: int. 0 <= k < gh.g_esize -> valid (shift gh.g_edges k) a_e) /\
+            (edges_valid g m_g m_e m_v gh.g_ecnt) /\ 
+            (forall k: int. gh.g_ecnt <= k < gh.g_esize -> (exists e: edge. (e = select(shift gh.g_edges k) m_e ) /\ (e.e_existent = 0)))
+
+    predicate range_existent (g: pointer graph) (m_g: memory graph) (m_e: memory edge) (m: int) (n: int) = 
+        forall k: int. 
+            m <= k < n 
+            -> 
+            (exists gh: graph, e: edge. 
+                (gh = (select g m_g)) /\ 
+                (e = (select (shift gh.g_edges k) m_e)) /\ 
+                (e.e_existent > 0))
+
+    predicate full (g: pointer graph)  (m_g: memory graph) (m_e: memory edge) = 
+        exists gh: graph. 
+            (gh = (select g m_g)) /\ 
+            range_existent g m_g m_e 0 gh.g_esize
+
+    function count (g: pointer graph) (m_g: memory graph) (m_e: memory edge) (m_v: memory vertex)(f: int) (t: int) (m: int) (n: int): int
+
+    axiom count_zero: 
+        forall g: pointer graph, m_g: memory graph, m_e: memory edge, m_v: memory vertex, f: int, t: int, m: int, n: int.
+            (m >= n) -> ((count g m_g m_e m_v f t m n) = 0)
+
+	predicate count_one_p (g: pointer graph) (m_g: memory graph) (m_e: memory edge) (m_v: memory vertex) (f: int) (t: int) (m: int) =
+        exists gh: graph, e: edge, v_from: vertex, v_to: vertex. 
+            (gh = (select g m_g)) /\ 
+            (e = (select (shift gh.g_edges m) m_e)) /\ 
+            (v_from = (select (shift gh.g_vertices e.e_from) m_v)) /\ 
+            (v_to = (select (shift gh.g_vertices e.e_to) m_v)) /\
+            (count g m_g m_e m_v f t m (m + 1)) 
+            = 
+            (if ((e.e_existent > 0) /\ (e.e_from = f) /\ (e.e_to = t)) then 1 else 0)
+
+    axiom count_one: 
+        forall g: pointer graph, m_g: memory graph, m_e: memory edge, m_v: memory vertex, f: int, t: int, m: int. 
+            true -> (count_one_p g m_g m_e m_v f t m)
+
+    predicate count_split_p (g: pointer graph) (m_g: memory graph) (m_e: memory edge) (m_v: memory vertex) (f: int) (t: int) (m: int) (n: int) (k: int) =
+        (count g m_g m_e m_v f t m k) = (count g m_g m_e m_v f t m n) + (count g m_g m_e m_v f t n k)
+
+    axiom count_split: 
+        forall m_g: memory graph, m_e: memory edge, m_v: memory vertex, g: pointer graph, f: int, t: int, m: int, n: int, k: int.
+            (m <= n <= k) -> (count_split_p g m_g m_e m_v f t m n k)
+
+    function all_count  (g: pointer graph) (m_g: memory graph) (m_e: memory edge) (m_v: memory vertex) (f: int) (t: int): int =
+        count g m_g m_e m_v f t 0 (select g m_g).g_esize
+
+    let count (g: pointer graph) (a_g: alloc_table graph) (a_v: alloc_table vertex) (a_e: alloc_table edge) (m_g: memory graph) (m_e: memory edge) (m_v: memory vertex) (f: int) (t: int): int 
+        requires { valid g a_g && graph_valid g m_g m_e m_v a_v a_e}
+        requires { is_vertex g m_g f }
+        requires { is_vertex g m_g t }
+        requires { (select (shift (select g m_g).g_vertices f) m_v).v_existent > 0 }
+        requires { (select (shift (select g m_g).g_vertices t) m_v).v_existent > 0 }
+        ensures { result = all_count g m_g m_e m_v f t }
+    = 
+        let c = ref 0 in
+        for i = 0 to (acc g m_g a_g).g_ecnt - 1 do
+            if ((acc (shft (acc g m_g a_g).g_edges i) m_e a_e).e_existent > 0) then
+                if ((acc (shft (acc g m_g a_g).g_edges i) m_e a_e).e_from = f) then
+                    if ((acc (shft (acc g m_g a_g).g_edges i) m_e a_e ).e_to = t) then
+                        c := !c + 1;
+        done;
+        !c
+
+    val upd_edge (e : pointer edge) (m_e : memory edge) (f : int) (t : int) : unit
+        ensures { (select e m_e).e_from = f }
+        ensures { (select e m_e).e_to = t }
+        ensures { (select e m_e).e_existent = 1 }
+    
+    val add_enct (g : pointer graph) (m_g : memory graph) : unit
+        ensures { (select g m_g).g_ecnt = (select (old g) (old m_g)).g_ecnt + 1 }
+
+
+    let add_edge (g: pointer graph) (a_g: alloc_table graph) (a_v: alloc_table vertex) (a_e: alloc_table edge) (m_g: memory graph) (m_e: memory edge) (m_v: memory vertex) (f: int) (t: int): unit 
+        requires { valid g a_g && graph_valid g m_g m_e m_v a_v a_e}
+        requires { is_vertex g m_g f }
+        requires { is_vertex g m_g t }
+        requires { (select (shift (select g m_g).g_vertices f) m_v).v_existent > 0 }
+        requires { (select (shift (select g m_g).g_vertices t) m_v).v_existent > 0 }
+        requires { not (full g m_g m_e) }
+        ensures { graph_valid g m_g m_e m_v a_v a_e }
+        ensures { (all_count g m_g m_e m_v f t) = ((all_count (old g) (old m_g) (old m_e) (old m_v) f t) + 1)}
+        ensures { forall f2: int, t2: int. (not(f2 = f) || not(t2  = t)) -> (all_count g m_g m_e m_v f2 t2) = (all_count (old g) (old m_g) (old m_e) (old m_v) f2 t2) }
+    =
+        if (acc g m_g a_g).g_ecnt < (acc g m_g a_g).g_esize then
+            upd_edge (shft (acc g m_g a_g).g_edges (acc g m_g a_g).g_ecnt) m_e f t;
+            add_enct g m_g;
+        
+        let c = ref 0 in
+            for i = 0 to (acc g m_g a_g).g_ecnt - 1 do
+                if ((acc (shft (acc g m_g a_g).g_edges i) m_e a_e).e_existent = 0) then
+                    upd_edge (shft (acc g m_g a_g).g_edges i) m_e f t;
+        done;
+end
