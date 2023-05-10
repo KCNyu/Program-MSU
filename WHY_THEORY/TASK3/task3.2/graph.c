@@ -113,7 +113,7 @@ count(Graph *g, int f, int t)
 {
     int c = 0;
     /*@
-      @ loop invariant i >= 0 && i <= g->ecnt && c == all_count(g, f, t, 0, i);
+      @ loop invariant i >= 0 && i <= g->ecnt && c == all_count(g, f, t);
       @ loop variant g->ecnt - i;
     */
     for (int i = 0; i < g->ecnt; ++i) {
