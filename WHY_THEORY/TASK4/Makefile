@@ -17,8 +17,11 @@ report: main
 	lcov --capture --directory . --output-file coverage.info
 	genhtml coverage.info --output-directory out
 
-check: main
+memcheck: main
 	valgrind --leak-check=full ./main
+
+analyze: main
+	cppcheck --enable=all --suppress=missingIncludeSystem .
 
 .PHONY: clean report
 

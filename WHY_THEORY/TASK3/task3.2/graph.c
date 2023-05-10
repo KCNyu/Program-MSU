@@ -112,6 +112,10 @@ int
 count(Graph *g, int f, int t)
 {
     int c = 0;
+    /*@
+      @ loop invariant i >= 0 && i <= g->ecnt && c == all_count(g, f, t, 0, i);
+      @ loop variant g->ecnt - i;
+    */
     for (int i = 0; i < g->ecnt; ++i) {
         if (g->edges[i].existent && g->edges[i].from == f && g->edges[i].to == t) {
             ++ c;
@@ -141,7 +145,10 @@ add_edge(Graph *g, int f, int t)
 	    ++ g->ecnt;
         return;
     }
-
+    /*@
+      @ loop invariant i >= 0 && i <= g->ecnt && \forall integer k; 0 <= k < i ==> g->edges[k].existent;
+      @ loop variant g->ecnt - i;
+    */
     for (int i = 0; i < g->ecnt; ++i) {
        if (!g->edges[i].existent) {
             g->edges[i].from = f;
