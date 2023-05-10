@@ -31,7 +31,7 @@ int main()
     // Initialize a map with negative capacity
     Map neg_map;
     int result = initializeMap(&neg_map, -1);
-    check("Initialization with negative capacity", 0, result, "Map initialized with capacity: %d\n", -1);
+    check("Initialization with negative capacity", -1, result, "Map initialized with capacity: %d\n", -1);
     // Initialize a map
     Map map;
     result = initializeMap(&map, 2);
