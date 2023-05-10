@@ -30,6 +30,18 @@ To run memory leak checks, run:
 make memcheck
 ```
 
+```bash
+==10725== 
+==10725== HEAP SUMMARY:
+==10725==     in use at exit: 0 bytes in 0 blocks
+==10725==   total heap usage: 6 allocs, 6 frees, 2,119 bytes allocated
+==10725== 
+==10725== All heap blocks were freed -- no leaks are possible
+==10725== 
+==10725== For lists of detected and suppressed errors, rerun with: -s
+==10725== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
+```
+
 ## Test Coverage Report
 
 To generate test coverage report, run:
