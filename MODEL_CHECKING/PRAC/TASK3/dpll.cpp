@@ -31,7 +31,7 @@ namespace model::dpll
             }
         }
     }
-    Boolean Solver::propagate()
+    Boolean Solver::propagate(CNF &cnf)
     {
         auto find_unit_clause = [](auto &clauses)
         {
@@ -39,21 +39,21 @@ namespace model::dpll
                                 { return clause.second == UNDEF && clause.first.size() == 1; });
         };
 
-        auto unit_clause_iter = find_unit_clause(_cnf._clauses);
-        while (unit_clause_iter != _cnf._clauses.end())
+        auto unit_clause_iter = find_unit_clause(cnf._clauses);
+        while (unit_clause_iter != cnf._clauses.end())
         {
             int literal = unit_clause_iter->first[0];
             unit_clause_iter->second = TRUE;
 
-            Boolean result = apply(_cnf, {std::abs(literal), literal > 0 ? TRUE : FALSE});
+            Boolean result = apply(cnf, {std::abs(literal), literal > 0 ? TRUE : FALSE});
             if (result == TRUE || result == FALSE)
             {
                 return result;
             }
-            unit_clause_iter = find_unit_clause(_cnf._clauses);
+            unit_clause_iter = find_unit_clause(cnf._clauses);
         }
 
-        return _cnf.is_satisfied() ? TRUE : UNDEF;
+        return cnf.is_satisfied() ? TRUE : UNDEF;
     }
     Boolean Solver::apply(CNF &cnf, const Var &var)
     {
@@ -92,39 +92,39 @@ namespace model::dpll
 
         return UNDEF;
     }
-    Var Solver::choose(const CNF &cnf, const int &index)
+    Var Solver::choose(const CNF &cnf)
     {
-        std::map<int, int> literal_count;
-        for (auto &clause : cnf._clauses)
+        size_t min_clause_size = std::numeric_limits<size_t>::max();
+        int min_clause_index = -1;
+
+        for (int i = 0; i < cnf._clauses.size(); i++)
         {
-            if (clause.second != UNDEF)
+            if (cnf._clauses[i].second != UNDEF)
             {
                 continue;
             }
 
-            for (auto &literal : clause.first)
+            size_t clause_size = cnf._clauses[i].first.size();
+            if (clause_size > 0 && clause_size < min_clause_size)
             {
-                literal_count[std::abs(literal)]++;
+                min_clause_size = clause_size;
+                min_clause_index = i;
             }
         }
 
-        auto max_literal = std::max_element(literal_count.begin(), literal_count.end(),
-                                            [](const auto &a, const auto &b)
-                                            { return a.second < b.second; });
-
-        return {max_literal->first, index == 0 ? TRUE : FALSE};
+        return {abs(cnf._clauses[min_clause_index].first[0]), TRUE};
     }
     bool Solver::solve()
     {
-        std::stack<CNF> cnf_stack;
-        cnf_stack.push(_cnf);
+        std::stack<std::shared_ptr<CNF>> cnf_stack;
+        cnf_stack.push(std::make_shared<CNF>(_cnf));
 
         while (!cnf_stack.empty())
         {
-            _cnf = cnf_stack.top();
+            std::shared_ptr<CNF> cnf = cnf_stack.top();
             cnf_stack.pop();
 
-            Boolean result = propagate();
+            Boolean result = propagate(*cnf);
             if (result == TRUE)
             {
                 return true;
@@ -133,14 +133,17 @@ namespace model::dpll
             {
                 continue;
             }
-
+            Var var = choose(*cnf);
             for (int i = 0; i < 2; i++)
             {
-                CNF new_cnf = _cnf;
-                Var var = choose(new_cnf, i);
-                // std::cout << "Trying " << var.first << " = " << var.second << std::endl;
+                std::shared_ptr<CNF> new_cnf = std::make_shared<CNF>(*cnf);
 
-                result = apply(new_cnf, var);
+                if (i == 1)
+                {
+                    var.second = FALSE;
+                }
+
+                result = apply(*new_cnf, var);
                 if (result == TRUE)
                 {
                     return true;
@@ -150,10 +153,10 @@ namespace model::dpll
                     continue;
                 }
                 cnf_stack.push(new_cnf);
-                // std::cout << cnf_stack.size() << std::endl;
             }
         }
 
         return false;
     }
+
 };

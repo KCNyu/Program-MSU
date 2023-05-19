@@ -3,7 +3,6 @@
 void CNFSpec(const std::string &filename, const bool expected)
 {
     model::dpll::Solver solver(filename);
-    // auto start = std::chrono::high_resolution_clock::now();
     bool result = solver.solve();
     if (result != expected)
     {
@@ -12,11 +11,6 @@ void CNFSpec(const std::string &filename, const bool expected)
         std::cout << "Got: " << result << std::endl;
         exit(1);
     }
-    // auto end = std::chrono::high_resolution_clock::now();
-    // std::cout << "CNFSpec for " << filename << " took "
-    //           << std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() / 1000.0
-    //           << " seconds" << std::endl
-    //           << std::endl;
 }
 
 void Test(const std::string &dir, const bool expected)
@@ -58,10 +52,11 @@ int main(int argc, char const *argv[])
     // Test("tests/unsat", false);
     Test("tests/sat/uf50-218", true);
     Test("tests/sat/aim", true);
+    Test("tests/sat/hanoi", true);
+
     Test("tests/unsat/aim", false);
     Test("tests/unsat/UUF50.218.1000", false);
     Test("tests/unsat/pigeon-hole", false);
-    Test("tests/sat/hanoi4.cnf", true);
 
     return 0;
 }
