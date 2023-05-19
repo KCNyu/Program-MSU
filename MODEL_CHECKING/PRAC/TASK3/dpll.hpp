@@ -7,6 +7,7 @@
 #include <string>
 #include <algorithm>
 #include <stack>
+#include <map>
 
 namespace model::dpll
 {
@@ -51,9 +52,10 @@ namespace model::dpll
     {
     private:
         CNF _cnf;
+        Boolean propagate();
 
     protected:
-        Boolean propagate(CNF &cnf);
+        Var choose(const CNF &cnf, const int &index);
         Boolean apply(CNF &cnf, const Var &var);
 
     public:

@@ -31,7 +31,7 @@ namespace model::dpll
             }
         }
     }
-    Boolean Solver::propagate(CNF &cnf)
+    Boolean Solver::propagate()
     {
         auto find_unit_clause = [](auto &clauses)
         {
@@ -39,21 +39,21 @@ namespace model::dpll
                                 { return clause.second == UNDEF && clause.first.size() == 1; });
         };
 
-        auto unit_clause_iter = find_unit_clause(cnf._clauses);
-        while (unit_clause_iter != cnf._clauses.end())
+        auto unit_clause_iter = find_unit_clause(_cnf._clauses);
+        while (unit_clause_iter != _cnf._clauses.end())
         {
             int literal = unit_clause_iter->first[0];
             unit_clause_iter->second = TRUE;
 
-            Boolean result = apply(cnf, {std::abs(literal), literal > 0 ? TRUE : FALSE});
+            Boolean result = apply(_cnf, {std::abs(literal), literal > 0 ? TRUE : FALSE});
             if (result == TRUE || result == FALSE)
             {
                 return result;
             }
-            unit_clause_iter = find_unit_clause(cnf._clauses);
+            unit_clause_iter = find_unit_clause(_cnf._clauses);
         }
 
-        return cnf.is_satisfied() ? TRUE : UNDEF;
+        return _cnf.is_satisfied() ? TRUE : UNDEF;
     }
     Boolean Solver::apply(CNF &cnf, const Var &var)
     {
@@ -63,48 +63,56 @@ namespace model::dpll
             {
                 continue;
             }
-            for (auto &literal : clause.first)
-            {
-                if (literal == var.first)
-                {
-                    if (var.second == FALSE)
-                    {
-                        clause.first.erase(std::remove(clause.first.begin(), clause.first.end(), literal), clause.first.end());
 
-                        if (clause.first.empty())
-                        {
-                            return FALSE;
-                        }
-                        break;
-                    }
-                    clause.second = TRUE;
-                    if (cnf.is_satisfied())
-                    {
-                        return TRUE;
-                    }
-                    break;
-                }
-                else if (literal == -var.first)
+            auto literal_it = std::find_if(clause.first.begin(), clause.first.end(),
+                                           [&var](const auto &literal)
+                                           { return literal == var.first || literal == -var.first; });
+
+            if (literal_it != clause.first.end())
+            {
+                if ((*literal_it == var.first && var.second == FALSE) ||
+                    (*literal_it == -var.first && var.second == TRUE))
                 {
-                    if (var.second == TRUE)
+                    clause.first.erase(literal_it);
+                    if (clause.first.empty())
                     {
-                        clause.first.erase(std::remove(clause.first.begin(), clause.first.end(), literal), clause.first.end());
-                        if (clause.first.empty())
-                        {
-                            return FALSE;
-                        }
-                        break;
+                        return FALSE;
                     }
+                }
+                else
+                {
                     clause.second = TRUE;
                     if (cnf.is_satisfied())
                     {
                         return TRUE;
                     }
-                    break;
                 }
             }
         }
+
         return UNDEF;
+    }
+    Var Solver::choose(const CNF &cnf, const int &index)
+    {
+        std::map<int, int> literal_count;
+        for (auto &clause : cnf._clauses)
+        {
+            if (clause.second != UNDEF)
+            {
+                continue;
+            }
+
+            for (auto &literal : clause.first)
+            {
+                literal_count[std::abs(literal)]++;
+            }
+        }
+
+        auto max_literal = std::max_element(literal_count.begin(), literal_count.end(),
+                                            [](const auto &a, const auto &b)
+                                            { return a.second < b.second; });
+
+        return {max_literal->first, index == 0 ? TRUE : FALSE};
     }
     bool Solver::solve()
     {
@@ -113,10 +121,10 @@ namespace model::dpll
 
         while (!cnf_stack.empty())
         {
-            CNF cnf = cnf_stack.top();
+            _cnf = cnf_stack.top();
             cnf_stack.pop();
 
-            Boolean result = propagate(cnf);
+            Boolean result = propagate();
             if (result == TRUE)
             {
                 return true;
@@ -128,19 +136,10 @@ namespace model::dpll
 
             for (int i = 0; i < 2; i++)
             {
-                CNF new_cnf = cnf;
-                Var var;
-                for (const auto &clause : new_cnf._clauses)
-                {
-                    if (clause.second != UNDEF)
-                    {
-                        continue;
-                    }
-                    for (const auto &literal : clause.first)
-                    {
-                        var = {std::abs(literal), i == 0 ? TRUE : FALSE};
-                    }
-                }
+                CNF new_cnf = _cnf;
+                Var var = choose(new_cnf, i);
+                // std::cout << "Trying " << var.first << " = " << var.second << std::endl;
+
                 result = apply(new_cnf, var);
                 if (result == TRUE)
                 {
@@ -151,6 +150,7 @@ namespace model::dpll
                     continue;
                 }
                 cnf_stack.push(new_cnf);
+                // std::cout << cnf_stack.size() << std::endl;
             }
         }
 
