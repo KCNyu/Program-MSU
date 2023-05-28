@@ -13,7 +13,7 @@ namespace model::translator
     using namespace model::ltl;
     using namespace model::fsm;
 
-    using FormulaSet = std::unordered_set<Formula>;
+    using FormulaSet = std::set<Formula>;
     using FormulaVec = std::vector<Formula>;
 
     using AtomMap = std::map<Formula, bool>;

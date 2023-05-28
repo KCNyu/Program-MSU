@@ -21,3 +21,5 @@ endmacro(ExampleTest)
 
 ExampleTest(1)
 ExampleTest(2)
+ExampleTest(3)
+ExampleTest(4)

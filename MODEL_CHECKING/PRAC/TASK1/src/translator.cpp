@@ -243,11 +243,23 @@ namespace model::translator
                  }
                  auto lhs_result = get_true_state(formula.lhs(), formulas);
                  auto rhs_result = get_true_state(formula.rhs(), formulas);
-                 if (!lhs_result.has_value() || !rhs_result.has_value())
+                 if (lhs_result.has_value() && *lhs_result)
                  {
-                     return std::nullopt;
+                     return true;
                  }
-                 return std::optional<bool>(*lhs_result || *rhs_result);
+                 else if (rhs_result.has_value() && *rhs_result)
+                 {
+                     return true;
+                 }
+                 return false;
+             }},
+            {Formula::U, [](const Formula &formula, const FormulaVec &formulas) -> std::optional<bool>
+             {
+                 if (std::find(formulas.begin(), formulas.end(), formula) != formulas.end())
+                 {
+                     return true;
+                 }
+                 return std::nullopt;
              }}};
 
         auto it = operations.find(formula.kind());

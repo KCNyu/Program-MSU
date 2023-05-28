@@ -99,13 +99,28 @@ namespace model::ltl
             return h;
         }
         // Compare function for Formula save in set or map
+        // Complexity function to calculate complexity of a formula.
+        int complexity() const
+        {
+            // Replace with your own complexity calculation
+            if (to_string() == "true")
+            {
+                return -1;
+            }
+            else if (to_string() == "!(true)")
+            {
+                return 0;
+            }
+            return to_string().size();
+        }
+
         bool operator<(const Formula &other) const
         {
-            return hash() < other.hash();
-        }
-        bool operator>(const Formula &other) const
-        {
-            return hash() > other.hash();
+            if (complexity() == other.complexity())
+            {
+                return to_string() < other.to_string();
+            }
+            return complexity() < other.complexity();
         }
 
         const std::string to_string() const;
