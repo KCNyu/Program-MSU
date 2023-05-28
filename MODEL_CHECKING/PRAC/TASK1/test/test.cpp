@@ -85,10 +85,10 @@ void Test1()
     automaton.set_final(0, "s1", "s2", "s4", "s6");
 
     automaton.add_trans_s("s1", {}, {"s1", "s2", "s3", "s4", "s5", "s6"});
-    automaton.add_trans_s("s2", {"p"}, {"s1", "s2", "s4"});
-    automaton.add_trans_s("s3", {"p"}, {"s3", "s5", "s6"});
-    automaton.add_trans_s("s4", {"q"}, {"s1", "s2", "s4"});
-    automaton.add_trans_s("s5", {"q"}, {"s3", "s5", "s6"});
+    automaton.add_trans_s("s2", {"q"}, {"s1", "s2", "s4"});
+    automaton.add_trans_s("s3", {"q"}, {"s3", "s5", "s6"});
+    automaton.add_trans_s("s4", {"p"}, {"s1", "s2", "s4"});
+    automaton.add_trans_s("s5", {"p"}, {"s3", "s5", "s6"});
     automaton.add_trans_s("s6", {"p", "q"}, {"s1", "s2", "s3", "s4", "s5", "s6"});
 
     FormulaSpec(formula, automaton);
@@ -100,24 +100,109 @@ void Test2()
 
     automaton.add_state("s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "s12", "s13", "s14");
 
-    automaton.set_initial("s1", "s4", "s6", "s8", "s11", "s13");
+    automaton.set_initial("s1", "s3", "s5", "s7", "s10", "s13");
 
-    automaton.set_final(0, "s1", "s3", "s4", "s6", "s8", "s10", "s11", "s13");
+    automaton.set_final(0, "s1", "s3", "s5", "s7", "s9", "s10", "s12", "s13");
 
-    automaton.add_trans_s("s1", {}, {"s1", "s4", "s6"});
-    automaton.add_trans_s("s2", {}, {"s2", "s3", "s5", "s7"});
-    automaton.add_trans_s("s3", {"p"}, {"s1", "s2", "s3", "s4", "s5", "s6", "s7"});
-    automaton.add_trans_s("s4", {}, {"s8", "s11", "s13"});
-    automaton.add_trans_s("s5", {}, {"s9", "s10", "s12", "s14"});
-    automaton.add_trans_s("s6", {"p"}, {"s8", "s11", "s13"});
-    automaton.add_trans_s("s7", {"p"}, {"s9", "s10", "s12", "s14"});
-    automaton.add_trans_s("s8", {"q"}, {"s1", "s4", "s6"});
-    automaton.add_trans_s("s9", {"q"}, {"s2", "s3", "s5", "s7"});
-    automaton.add_trans_s("s10", {"p", "q"}, {"s1", "s2", "s3", "s4", "s5", "s6", "s7"});
-    automaton.add_trans_s("s11", {"q"}, {"s8", "s11", "s13"});
-    automaton.add_trans_s("s12", {"q"}, {"s9", "s10", "s12", "s14"});
-    automaton.add_trans_s("s13", {"p", "q"}, {"s8", "s11", "s13"});
-    automaton.add_trans_s("s14", {"p", "q"}, {"s9", "s10", "s12", "s14"});
+    automaton.add_trans_s("s1", {}, {"s1", "s3", "s10"});
+    automaton.add_trans_s("s2", {}, {"s2", "s4", "s9", "s11"});
+    automaton.add_trans_s("s3", {}, {"s5", "s7", "s13"});
+    automaton.add_trans_s("s4", {}, {"s6", "s8", "s12", "s14"});
+    automaton.add_trans_s("s5", {"q"}, {"s1", "s3", "s10"});
+    automaton.add_trans_s("s6", {"q"}, {"s2", "s4", "s9", "s11"});
+    automaton.add_trans_s("s7", {"q"}, {"s5", "s7", "s13"});
+    automaton.add_trans_s("s8", {"q"}, {"s6", "s8", "s12", "s14"});
+    automaton.add_trans_s("s9", {"p"}, {"s1", "s2", "s3", "s4", "s9", "s10", "s11"});
+    automaton.add_trans_s("s10", {"p"}, {"s5", "s7", "s13"});
+    automaton.add_trans_s("s11", {"p"}, {"s6", "s8", "s12", "s14"});
+    automaton.add_trans_s("s12", {"p", "q"}, {"s1", "s2", "s3", "s4", "s9", "s10", "s11"});
+    automaton.add_trans_s("s13", {"p", "q"}, {"s5", "s7", "s13"});
+    automaton.add_trans_s("s14", {"p", "q"}, {"s6", "s8", "s12", "s14"});
+
+    FormulaSpec(formula, automaton);
+}
+void Test3()
+{
+    const Formula &formula = G(P("p") >> F(P("q")));
+    Automaton automaton;
+
+    automaton.add_state("s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11");
+
+    automaton.set_initial("s1", "s2", "s5", "s8", "s10");
+
+    automaton.set_final(0, "s1", "s3", "s5", "s6", "s7", "s10", "s11");
+    automaton.set_final(1, "s1", "s2", "s5", "s7", "s8", "s10");
+
+    automaton.add_trans_s("s1", {}, {"s1"});
+    automaton.add_trans_s("s2", {}, {"s2", "s5", "s8", "s10"});
+    automaton.add_trans_s("s3", {}, {"s3", "s7"});
+    automaton.add_trans_s("s4", {}, {"s4", "s6", "s9", "s11"});
+    automaton.add_trans_s("s5", {"q"}, {"s1", "s2", "s5", "s8", "s10"});
+    automaton.add_trans_s("s6", {"q"}, {"s3", "s4", "s6", "s7", "s9", "s11"});
+    automaton.add_trans_s("s7", {"p"}, {"s1", "s3", "s7"});
+    automaton.add_trans_s("s8", {"p"}, {"s2", "s5", "s8", "s10"});
+    automaton.add_trans_s("s9", {"p"}, {"s4", "s6", "s9", "s11"});
+    automaton.add_trans_s("s10", {"p", "q"}, {"s1", "s2", "s5", "s8", "s10"});
+    automaton.add_trans_s("s11", {"p", "q"}, {"s3", "s4", "s6", "s7", "s9", "s11"});
+
+    FormulaSpec(formula, automaton);
+}
+void Test4()
+{
+    const Formula &formula = F(G(P("p") >> X(X(P("q")))));
+    Automaton automaton;
+
+    automaton.add_state("s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11", "s12", "s13", "s14", "s15", "s16", "s17", "s18", "s19", "s20", "s21", "s22", "s23", "s24", "s25", "s26", "s27", "s28", "s29", "s30", "s31", "s32", "s33", "s34", "s35", "s36", "s37", "s38", "s39", "s40", "s41", "s42", "s43", "s44");
+
+    automaton.set_initial("s1", "s3", "s4", "s6", "s7", "s9", "s10", "s12", "s13", "s15", "s16", "s18", "s19", "s21", "s22", "s24", "s26", "s27", "s29", "s31", "s32", "s34", "s36", "s37", "s39", "s41", "s42", "s44");
+
+    automaton.set_final(0, "s1", "s4", "s7", "s10", "s13", "s16", "s19", "s22", "s25", "s26", "s27", "s30", "s31", "s32", "s35", "s36", "s37", "s40", "s41", "s42");
+    automaton.set_final(1, "s1", "s2", "s4", "s5", "s7", "s8", "s10", "s11", "s13", "s14", "s16", "s17", "s19", "s20", "s22", "s23", "s25", "s27", "s28", "s30", "s32", "s33", "s35", "s37", "s38", "s40", "s42", "s43");
+
+    automaton.add_trans_s("s1", {}, {"s1", "s4", "s27"});
+    automaton.add_trans_s("s2", {}, {"s2", "s5", "s25", "s28"});
+    automaton.add_trans_s("s3", {}, {"s3", "s6", "s26", "s29"});
+    automaton.add_trans_s("s4", {}, {"s7", "s10", "s32"});
+    automaton.add_trans_s("s5", {}, {"s8", "s11", "s30", "s33"});
+    automaton.add_trans_s("s6", {}, {"s9", "s12", "s31", "s34"});
+    automaton.add_trans_s("s7", {}, {"s13", "s16", "s37"});
+    automaton.add_trans_s("s8", {}, {"s14", "s17", "s35", "s38"});
+    automaton.add_trans_s("s9", {}, {"s15", "s18", "s36", "s39"});
+    automaton.add_trans_s("s10", {}, {"s19", "s22", "s42"});
+    automaton.add_trans_s("s11", {}, {"s20", "s23", "s40", "s43"});
+    automaton.add_trans_s("s12", {}, {"s21", "s24", "s41", "s44"});
+    automaton.add_trans_s("s13", {"q"}, {"s1", "s4", "s27"});
+    automaton.add_trans_s("s14", {"q"}, {"s2", "s5", "s25", "s28"});
+    automaton.add_trans_s("s15", {"q"}, {"s3", "s6", "s26", "s29"});
+    automaton.add_trans_s("s16", {"q"}, {"s7", "s10", "s32"});
+    automaton.add_trans_s("s17", {"q"}, {"s8", "s11", "s30", "s33"});
+    automaton.add_trans_s("s18", {"q"}, {"s9", "s12", "s31", "s34"});
+    automaton.add_trans_s("s19", {"q"}, {"s13", "s16", "s37"});
+    automaton.add_trans_s("s20", {"q"}, {"s14", "s17", "s35", "s38"});
+    automaton.add_trans_s("s21", {"q"}, {"s15", "s18", "s36", "s39"});
+    automaton.add_trans_s("s22", {"q"}, {"s19", "s22", "s42"});
+    automaton.add_trans_s("s23", {"q"}, {"s20", "s23", "s40", "s43"});
+    automaton.add_trans_s("s24", {"q"}, {"s21", "s24", "s41", "s44"});
+    automaton.add_trans_s("s25", {"p"}, {"s2", "s5", "s25", "s28"});
+    automaton.add_trans_s("s26", {"p"}, {"s1", "s3", "s4", "s6", "s26", "s27", "s29"});
+    automaton.add_trans_s("s27", {"p"}, {"s7", "s10", "s32"});
+    automaton.add_trans_s("s28", {"p"}, {"s8", "s11", "s30", "s33"});
+    automaton.add_trans_s("s29", {"p"}, {"s9", "s12", "s31", "s34"});
+    automaton.add_trans_s("s30", {"p"}, {"s14", "s17", "s35", "s38"});
+    automaton.add_trans_s("s31", {"p"}, {"s13", "s15", "s16", "s18", "s36", "s37", "s39"});
+    automaton.add_trans_s("s32", {"p"}, {"s19", "s22", "s42"});
+    automaton.add_trans_s("s33", {"p"}, {"s20", "s23", "s40", "s43"});
+    automaton.add_trans_s("s34", {"p"}, {"s21", "s24", "s41", "s44"});
+    automaton.add_trans_s("s35", {"p", "q"}, {"s2", "s5", "s25", "s28"});
+    automaton.add_trans_s("s36", {"p", "q"}, {"s1", "s3", "s4", "s6", "s26", "s27", "s29"});
+    automaton.add_trans_s("s37", {"p", "q"}, {"s7", "s10", "s32"});
+    automaton.add_trans_s("s38", {"p", "q"}, {"s8", "s11", "s30", "s33"});
+    automaton.add_trans_s("s39", {"p", "q"}, {"s9", "s12", "s31", "s34"});
+    automaton.add_trans_s("s40", {"p", "q"}, {"s14", "s17", "s35", "s38"});
+    automaton.add_trans_s("s41", {"p", "q"}, {"s13", "s15", "s16", "s18", "s36", "s37", "s39"});
+    automaton.add_trans_s("s42", {"p", "q"}, {"s19", "s22", "s42"});
+    automaton.add_trans_s("s43", {"p", "q"}, {"s20", "s23", "s40", "s43"});
+    automaton.add_trans_s("s44", {"p", "q"}, {"s21", "s24", "s41", "s44"});
 
     FormulaSpec(formula, automaton);
 }
@@ -130,6 +215,12 @@ void RunTests(const char *TestName)
         break;
     case 2:
         Test2();
+        break;
+    case 3:
+        Test3();
+        break;
+    case 4:
+        Test4();
         break;
     default:
         std::cout << "No such test" << std::endl;
