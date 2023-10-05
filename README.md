@@ -64,3 +64,11 @@
     * [MODEL_CHECKING](./MODEL_CHECKING/)
         * 程序模型验证
         * *Kamkin A.S.*
+
+* ### **研二课程**
+    * [C++_SC](./C++_SC)
+        * 超级计算机建模与技术
+        * *Popova N.N.*
+    * [INSECON](./INSECON)
+        * 信息安全和计算机网络
+        * *Getman A.I.*
