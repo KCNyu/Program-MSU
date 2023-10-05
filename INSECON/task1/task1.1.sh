@@ -2,7 +2,7 @@
 
 NAME=li
 GROUP=628
-EMAIL=lishengyu@mail.ru
+EMAIL=shengyu.li@ispras.ru
 
 ROOT_CA_NAME=$NAME-$GROUP-ca
 INTR_CA_NAME=$NAME-$GROUP-intr
@@ -97,4 +97,4 @@ rm $INTR_CA_NAME-chain.crt
 
 # ------------------------------------------------------------
 # Zip files
-zip -r task1.1.zip $ROOT_CA_NAME.key $ROOT_CA_NAME.crt $INTR_CA_NAME.key $INTR_CA_NAME.crt $BASIC_CA_NAME.key $BASIC_CA_NAME.crt
+zip -r $NAME-$GROUP-p1_1.zip $ROOT_CA_NAME.key $ROOT_CA_NAME.crt $INTR_CA_NAME.key $INTR_CA_NAME.crt $BASIC_CA_NAME.key $BASIC_CA_NAME.crt
