@@ -1,6 +1,6 @@
 #!/bin/sh
 
-NAME=li
+NAME=lisy
 GROUP=628
 EMAIL=shengyu.li@ispras.ru
 
@@ -66,7 +66,7 @@ openssl verify -CAfile $ROOT_CA_NAME.crt $INTR_CA_NAME.crt
 # ------------------------------------------------------------
 
 # Generate Basic CA Key
-openssl genrsa -out $BASIC_CA_NAME.key 4096
+openssl genrsa -out $BASIC_CA_NAME.key 2048
 
 # Create Basic CA Certificate
 openssl req \
