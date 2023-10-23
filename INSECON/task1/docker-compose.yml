@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx:/etc/nginx
+    ports:
+      - "443:443"
+      - "80:80"
+      
