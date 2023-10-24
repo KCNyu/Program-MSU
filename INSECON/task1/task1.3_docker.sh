@@ -24,6 +24,7 @@ OCSP_CONFIG=../nginx/conf.d/ocsp.conf
 VALID_SITE_NAME=ocsp.valid.$NAME.ru
 REVOKED_SITE_NAME=ocsp.revoked.$NAME.ru
 OCSP_SITE_NAME=ocsp.$NAME.ru
+LOCAL_ADDR=192.168.64.1
 
 mkdir -p $OUTPUT_DIR
 
@@ -263,7 +264,7 @@ server {
 	server_name $OCSP_SITE_NAME www.$OCSP_SITE_NAME;
 
 	location / {
-	    proxy_pass http://192.168.31.206:2560;
+	    proxy_pass http://$LOCAL_ADDR:2560;
 	}
 }
 
@@ -272,15 +273,4 @@ EOL
 # ------------------------------------------------------------
 
 # Start nginx and wait for 2 seconds
-cd .. && docker-compose up -d && cd $OUTPUT_DIR
-sleep 2
-
-# ------------------------------------------------------------
-
-# Create OCSP responder
-openssl ocsp -port 2560 \
-    -passin pass:$NAME \
-    -index index.txt \
-    -CA $CHAIN_CA_NAME.crt \
-    -rkey $OCSP_NAME.key \
-    -rsigner $OCSP_NAME.crt
+cd .. && docker-compose up
