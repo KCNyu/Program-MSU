@@ -225,11 +225,6 @@ server {
 	ssl_certificate $OUTPUT_DIR/$VALID_CA_NAME.crt;
 	ssl_certificate_key $OUTPUT_DIR/$VALID_CA_NAME.key;
 
-    ssl_stapling on;
-    ssl_stapling_verify on;
-    ssl_trusted_certificate $OUTPUT_DIR/$CHAIN_CA_NAME.crt;
-    ssl_stapling_responder http://192.168.31.206:2560;
-
     location / {
         # root   /usr/share/nginx/html;
         root /etc/nginx/html/valid;
@@ -251,11 +246,6 @@ server {
 	ssl_certificate $OUTPUT_DIR/$REVOKED_CA_NAME.crt;
 	ssl_certificate_key $OUTPUT_DIR/$REVOKED_CA_NAME.key;
 
-    ssl_stapling on;
-    ssl_stapling_verify on;
-    ssl_trusted_certificate $OUTPUT_DIR/$CHAIN_CA_NAME.crt;
-    ssl_stapling_responder http://192.168.64.1:2560;
-
     location / {
         # root   /usr/share/nginx/html;
         root /etc/nginx/html/revoked;
@@ -267,12 +257,13 @@ EOL
 
 cat > $OCSP_CONFIG <<EOL
 server {
-	listen 127.0.0.1:80;
+	listen 80;
+    listen [::]:80;
 
 	server_name $OCSP_SITE_NAME www.$OCSP_SITE_NAME;
 
 	location / {
-	    proxy_pass http://127.0.0.1:2560;
+	    proxy_pass http://192.168.31.206:2560;
 	}
 }
 
