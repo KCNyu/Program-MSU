@@ -26,6 +26,9 @@ REVOKED_SITE_NAME=ocsp.revoked.$NAME.ru
 OCSP_SITE_NAME=ocsp.$NAME.ru
 LOCAL_ADDR=192.168.64.1
 
+VALID_CHAIN=$VALID_CA_NAME-chain
+REVOKED_CHAIN=$REVOKED_CA_NAME-chain
+
 mkdir -p $OUTPUT_DIR
 
 # ------------------------------------------------------------
@@ -166,8 +169,9 @@ EOL
 openssl ca -passin pass:$NAME -config $CA_CONFIG -revoke $REVOKED_CA_NAME.crt
 openssl ca -passin pass:$NAME -config $CA_CONFIG -valid $VALID_CA_NAME.crt
 
-cat $INTR_CA_NAME.crt $ROOT_CA_NAME.crt > $INTR_CA_NAME-chain.crt
-cat $OCSP_NAME.crt $INTR_CA_NAME-chain.crt > $CHAIN_CA_NAME.crt
+cat $INTR_CA_NAME.crt $ROOT_CA_NAME.crt > $CHAIN_CA_NAME.crt
+cat $VALID_CA_NAME.crt $CHAIN_CA_NAME.crt > $VALID_CHAIN.crt
+cat $REVOKED_CA_NAME.crt $CHAIN_CA_NAME.crt > $REVOKED_CHAIN.crt
 
 # ------------------------------------------------------------
 
@@ -223,7 +227,7 @@ server {
 
     server_name $VALID_SITE_NAME www.$VALID_SITE_NAME;
 
-	ssl_certificate $OUTPUT_DIR/$VALID_CA_NAME.crt;
+	ssl_certificate $OUTPUT_DIR/$VALID_CHAIN.crt;
 	ssl_certificate_key $OUTPUT_DIR/$VALID_CA_NAME.key;
 
     location / {
@@ -244,7 +248,7 @@ server {
 
     server_name $REVOKED_SITE_NAME www.$REVOKED_SITE_NAME;
 
-	ssl_certificate $OUTPUT_DIR/$REVOKED_CA_NAME.crt;
+	ssl_certificate $OUTPUT_DIR/$REVOKED_CHAIN.crt;
 	ssl_certificate_key $OUTPUT_DIR/$REVOKED_CA_NAME.key;
 
     location / {

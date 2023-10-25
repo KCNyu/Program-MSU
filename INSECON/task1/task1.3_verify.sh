@@ -24,6 +24,9 @@ VALID_SITE_NAME=ocsp.valid.$NAME.ru
 REVOKED_SITE_NAME=ocsp.revoked.$NAME.ru
 OCSP_SITE_NAME=ocsp.$NAME.ru
 
+VALID_CHAIN=$VALID_CA_NAME-chain
+REVOKED_CHAIN=$REVOKED_CA_NAME-chain
+
 cd $OUTPUT_DIR
 
 openssl ocsp \
