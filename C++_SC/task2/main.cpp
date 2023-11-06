@@ -1,7 +1,9 @@
 #include "parser.hpp"
 #include "task.hpp"
 #include "serial_solver.hpp"
+#ifdef USE_MPI
 #include "parallel_solver.hpp"
+#endif
 #include "timer.hpp"
 
 int main(int argc, char **argv)

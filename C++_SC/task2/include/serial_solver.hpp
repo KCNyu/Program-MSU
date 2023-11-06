@@ -8,17 +8,11 @@
 
 using namespace std;
 
-using cube = vector<vector<vector<double>>>;
-
 class SerialSolver : public Solver
 {
+    using cube = vector<vector<vector<double>>>;
     vector<cube> u;
 
-public:
-    SerialSolver(Task task) : Solver(task)
-    {
-        reserve();
-    }
     void reserve()
     {
         u.resize(3);
@@ -120,7 +114,7 @@ public:
             }
         }
     }
-    const int loop(int n)
+    int loop(int n) const
     {
         return n % 3;
     }
@@ -139,6 +133,12 @@ public:
         }
 
         boundary(u[loop(n + 1)], (n + 1) * task.g.tau);
+    }
+
+public:
+    SerialSolver(Task task) : Solver(task)
+    {
+        reserve();
     }
     void run()
     {
