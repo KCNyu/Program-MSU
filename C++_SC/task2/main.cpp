@@ -1,13 +1,13 @@
-#include <chrono>
-#include <iostream>
-#include <omp.h>
+#include "task.hpp"
 #include "solver.hpp"
 #include "timer.hpp"
-#include "task.hpp"
 
 int main(int argc, char **argv)
 {
-    omp_set_num_threads(4);
+#ifdef USE_MPI
+    MPI_Init(&argc, &argv);
+#endif
+    // omp_set_num_threads(4);
 
     double L = argc > 1 ? std::stod(argv[1]) : M_PI;
     double T = argc > 2 ? std::stod(argv[2]) : 1.0;
@@ -20,12 +20,14 @@ int main(int argc, char **argv)
     { solver.run(); };
 
 #ifdef USE_MPI
-    Timer timer(solverTask, true);
-#else
-    Timer timer(solverTask);
-#endif
+    Timer timer(true);
+    timer.run(solverTask);
 
-    timer.run();
+    MPI_Finalize();
+#else
+    Timer timer;
+    timer.run(solverTask);
+#endif
 
     return 0;
 }
