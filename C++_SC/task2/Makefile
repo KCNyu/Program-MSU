@@ -30,3 +30,6 @@ main: $(OBJ)
 
 clean:
 	rm -f $(OBJ) main
+
+compile-polus:
+	g++ -O3 -std=c++11 -fopenmp -Iinclude main.cpp -o main
