@@ -1,35 +1,45 @@
-CC := clang++
-CFLAGS := -Xclang\
+CC := g++
+
+LOCAL_CFLAGS := -Xclang \
 		-fopenmp \
 		-std=c++11 -O3 \
 		-L/opt/homebrew/opt/libomp/lib \
 		-I/opt/homebrew/opt/libomp/include \
-		-lomp
+		-lomp \
+		-Iinclude
+
+POLUS_CFLAGS := -fopenmp \
+			-std=c++11 \
+			-O3 \
+			-Iinclude
 
 ifeq ($(FLAG),mpi)
     CFLAGS += -DUSE_MPI
+	POLUS_CFLAGS += -DUSE_MPI
 	CC := mpic++
 endif
 
-SRC := main.cpp
-INC := include
-OBJ := $(SRC:.cpp=.o)
-DEPS := $(wildcard include/*.hpp)
+MAIN := main
 
-CFLAGS += -I$(INC)
+all: compile-local
 
-.PHONY: all clean
+compile-local:
+	$(CC) $(LOCAL_CFLAGS) $(MAIN).cpp -o $(MAIN)
+	
+compile-polus:
+	$(CC) $(POLUS_CFLAGS) $(MAIN).cpp -o $(MAIN)
 
-all: main
+upload:
+	scripts/upload.sh
 
-main: $(OBJ)
-	$(CC) $(CFLAGS) $^ -o $@
+submit:
+	scripts/submit.sh
 
-%.o: %.cpp $(DEPS)
-	$(CC) $(CFLAGS) -c $< -o $@
+show:
+	scripts/show.sh task2_L1
+	scripts/show.sh task2_L2
 
 clean:
-	rm -f $(OBJ) main
+	rm -f $(MAIN)
 
-compile-polus:
-	g++ -O3 -std=c++11 -fopenmp -Iinclude main.cpp -o main
+.PHONY: all clean

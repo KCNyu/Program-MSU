@@ -5,7 +5,8 @@
 #ifdef USE_MPI
 #include <mpi.h>
 #endif
-#include <iostream>
+
+#include "printer.hpp"
 
 class Timer
 {
@@ -61,14 +62,14 @@ public:
             MPI_Comm_rank(MPI_COMM_WORLD, &rank);
             if (rank == 0)
             {
-                std::cout << "MPI time : " << max_duration << std::endl;
+                 Printer::print("MPI time", max_duration);
             }
 #endif
         }
         else
         {
             auto duration = std::chrono::duration_cast<std::chrono::microseconds>(_end - _start);
-            std::cout << "time : " << duration.count() / 1000000.0 << std::endl;
+            Printer::print("time", duration.count() / 1000000.0);
         }
     }
 };

@@ -8,7 +8,7 @@ int main(int argc, char **argv)
 #ifdef USE_MPI
     MPI_Init(&argc, &argv);
 #endif
-    // omp_set_num_threads(4);
+    // omp_set_num_threads(2);
 
     Parser parser(argc, argv);
     double L = parser.getL();
@@ -16,6 +16,20 @@ int main(int argc, char **argv)
     int N = parser.getN();
     int K = parser.getK();
     int steps = parser.getSteps();
+
+#pragma omp parallel
+    {
+        if (omp_get_thread_num() == 0)
+        {
+            Printer::split_line();
+            Printer::print("threads", omp_get_num_threads());
+            Printer::print("L", L);
+            Printer::print("T", T);
+            Printer::print("N", N);
+            Printer::print("K", K);
+            Printer::print("steps", steps);
+        }
+    }
 
     Solver solver(Task(L, L, L, N, T, K, steps));
     auto solverTask = [&]()
@@ -30,6 +44,7 @@ int main(int argc, char **argv)
     Timer timer;
     timer.run(solverTask);
 #endif
-
+    Printer::split_line();
+    Printer::json();
     return 0;
 }

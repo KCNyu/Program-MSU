@@ -1,8 +1,10 @@
 #pragma once
 
-#include "task.hpp"
 #include <omp.h>
 #include <iostream>
+
+#include "task.hpp"
+#include "printer.hpp"
 
 using namespace std;
 
@@ -108,6 +110,7 @@ public:
                 }
             }
         }
+#pragma omp parallel for collapse(3)
         for (int i = 1; i < task.N; i++)
         {
             for (int j = 1; j < task.N; j++)
@@ -148,6 +151,6 @@ public:
             iterate(n);
         }
 
-        cout << "error : " << getError() << endl;
+        Printer::print("error", getError());
     }
 };
