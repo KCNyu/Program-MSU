@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <sstream>
 #include <vector>
 #include <string>
 
@@ -17,8 +18,11 @@ public:
     static void print(const char *name, T value)
     {
         cout << setw(12) << name << ": " << setw(12) << setfill(' ') << value << endl;
-        string sname = name;
-        args.push_back(make_pair(sname, to_string(value)));
+        
+        stringstream stream;
+        stream << std::fixed << std::setprecision(8) << value;
+        string v = stream.str();
+        args.push_back(make_pair(name, v));
     }
     static void json()
     {
