@@ -1,12 +1,17 @@
 #include "parser.hpp"
 #include "task.hpp"
-#include "solver.hpp"
+#include "serial_solver.hpp"
+#include "parallel_solver.hpp"
 #include "timer.hpp"
 
 int main(int argc, char **argv)
 {
 #ifdef USE_MPI
     MPI_Init(&argc, &argv);
+
+    int rank, size;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
 #endif
     // omp_set_num_threads(2);
 
@@ -19,9 +24,16 @@ int main(int argc, char **argv)
 
 #pragma omp parallel
     {
+#ifdef USE_MPI
+        if (omp_get_thread_num() == 0 && rank == 0)
+#else
         if (omp_get_thread_num() == 0)
+#endif
         {
             Printer::split_line();
+#ifdef USE_MPI
+            Printer::print("process", size);
+#endif
             Printer::print("threads", omp_get_num_threads());
             Printer::print("L", L);
             Printer::print("T", T);
@@ -31,20 +43,29 @@ int main(int argc, char **argv)
         }
     }
 
-    Solver solver(Task(L, L, L, N, T, K, steps));
+#ifdef USE_MPI
+    Solver *solver = new ParallelSolver(Task(L, L, L, N, T, K, steps));
+#else
+    Solver *solver = new SerialSolver(Task(L, L, L, N, T, K, steps));
+#endif
     auto solverTask = [&]()
-    { solver.run(); };
+    { solver->run(); };
 
 #ifdef USE_MPI
     Timer timer(true);
     timer.run(solverTask);
-
+    if (rank == 0)
+    {
+        Printer::split_line();
+        Printer::json();
+    }
     MPI_Finalize();
 #else
     Timer timer;
     timer.run(solverTask);
-#endif
     Printer::split_line();
     Printer::json();
+#endif
+
     return 0;
 }

@@ -22,7 +22,7 @@ public:
         L = M_PI;
         T = 1.0;
         N = 128;
-        K = 1000;
+        K = 1e5;
         steps = 20;
 
         parse(argc, argv);
