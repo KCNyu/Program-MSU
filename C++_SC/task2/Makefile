@@ -14,7 +14,7 @@ POLUS_CFLAGS := -fopenmp \
 			-Iinclude
 
 ifeq ($(FLAG),mpi)
-    CFLAGS += -DUSE_MPI
+    LOCAL_CFLAGS += -DUSE_MPI
 	POLUS_CFLAGS += -DUSE_MPI
 	CC := mpic++
 endif
