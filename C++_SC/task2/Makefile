@@ -40,6 +40,6 @@ show:
 	scripts/show.sh task2_L2
 
 clean:
-	rm -f $(MAIN)
+	rm -f $(MAIN) numerical.* analytical.* error.*
 
 .PHONY: all clean

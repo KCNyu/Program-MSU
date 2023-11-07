@@ -23,6 +23,7 @@ int main(int argc, char **argv)
     int N = parser.getN();
     int K = parser.getK();
     int steps = parser.getSteps();
+    bool verbose = parser.getVerbose();
 
 #pragma omp parallel
     {
@@ -42,6 +43,8 @@ int main(int argc, char **argv)
             Printer::print("N", N);
             Printer::print("K", K);
             Printer::print("steps", steps);
+
+            Printer::verbose = verbose;
         }
     }
 

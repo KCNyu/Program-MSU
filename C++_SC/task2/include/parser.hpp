@@ -13,6 +13,7 @@ class Parser
     int N;
     int K;
     int steps;
+    bool verbose;
 
     int opt;
 
@@ -24,12 +25,13 @@ public:
         N = 128;
         K = 1e5;
         steps = 20;
+        verbose = false;
 
         parse(argc, argv);
     }
     void parse(int argc, char **argv)
     {
-        while ((opt = getopt(argc, argv, "L:T:N:K:S")) != -1)
+        while ((opt = getopt(argc, argv, "L:T:N:K:S:V")) != -1)
         {
             switch (opt)
             {
@@ -48,6 +50,9 @@ public:
             case 'S':
                 steps = std::stoi(optarg);
                 break;
+            case 'V':
+                verbose = true;
+                break;
             case '?':
                 std::cout << "Unknown option '-" << static_cast<char>(optopt) << "'\n";
                 break;
@@ -60,4 +65,5 @@ public:
     int getN() const { return N; }
     int getK() const { return K; }
     int getSteps() const { return steps; }
+    bool getVerbose() const { return verbose; }
 };

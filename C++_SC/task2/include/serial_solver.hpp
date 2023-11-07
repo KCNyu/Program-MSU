@@ -71,20 +71,40 @@ class SerialSolver : public Solver
     }
     double getError()
     {
-        double error = 0;
+        if (Printer::verbose)
+        {
+            Printer::open_csv();
+        }
+
+        double e = 0;
         for (int i = 0; i <= task.N; i++)
         {
             for (int j = 0; j <= task.N; j++)
             {
                 for (int k = 0; k <= task.N; k++)
                 {
-                    // cout << u[loop(task.steps)][i][j][k] << " " << task.f(i * task.g.hx, j * task.g.hy, k * task.g.hz, task.g.tau * task.steps) << endl;
-                    error = max(error, abs(u[loop(task.steps)][i][j][k] - task.f(i * task.g.hx, j * task.g.hy, k * task.g.hz, task.g.tau * task.steps)));
+                    double numerical = u[loop(task.steps)][i][j][k];
+                    double analytical = task.f(i * task.g.hx, j * task.g.hy, k * task.g.hz, task.g.tau * task.steps);
+                    double error = abs(numerical - analytical);
+
+                    e = max(e, error);
+
+                    if (Printer::verbose)
+                    {
+                        Printer::save_csv("analytical", i * task.g.hx, j * task.g.hy, k * task.g.hz, analytical);
+                        Printer::save_csv("numerical", i * task.g.hx, j * task.g.hy, k * task.g.hz, numerical);
+                        Printer::save_csv("error", i * task.g.hx, j * task.g.hy, k * task.g.hz, error);
+                    }
                 }
             }
         }
 
-        return error;
+        if (Printer::verbose)
+        {
+            Printer::close_csv();
+        }
+
+        return e;
     }
     void init()
     {
