@@ -52,17 +52,17 @@ public:
         numerical << "i,j,k,value" << endl;
         error << "i,j,k,value" << endl;
     }
-    static void save_csv(const char *filename, double i, double j, double k, double value)
+    static void save_csv(const string filename, double i, double j, double k, double value)
     {
-        if (strcmp(filename, "analytical") == 0)
+        if (filename == "analytical")
         {
             analytical << std::fixed << std::setprecision(8) << i << "," << j << "," << k << "," << value << endl;
         }
-        else if (strcmp(filename, "numerical") == 0)
+        else if (filename == "numerical")
         {
             numerical << std::fixed << std::setprecision(8) << i << "," << j << "," << k << "," << value << endl;
         }
-        else if (strcmp(filename, "error") == 0)
+        else if (filename == "error")
         {
             error << std::fixed << std::setprecision(8) << i << "," << j << "," << k << "," << value << endl;
         }
