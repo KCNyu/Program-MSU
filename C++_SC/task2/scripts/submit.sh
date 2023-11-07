@@ -6,7 +6,7 @@ mkdir $OUTPUT_DIR
 
 # Lx = Ly = Lz = 1 or π
 # N = 128
-for t in 2 4 8 16; do
+for t in 1 2 4 8 16; do
     bsub -n 1 \
         -q normal \
         -W 00:10 \
@@ -32,7 +32,7 @@ mkdir $OUTPUT_DIR
 
 # Lx = Ly = Lz = 1 or π
 # N = 256
-for t in 4 8 16 32; do
+for t in 1 4 8 16 32; do
     bsub -n 1 \
         -q normal \
         -W 00:10 \
