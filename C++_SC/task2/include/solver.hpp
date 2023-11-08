@@ -10,4 +10,5 @@ protected:
 public:
     Solver(Task task) : task(task) {}
     virtual void run() = 0;
+    virtual ~Solver() {}
 };

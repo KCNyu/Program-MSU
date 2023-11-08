@@ -161,7 +161,7 @@ public:
     {
         reserve();
     }
-    void run()
+    void run() override
     {
         init();
 
@@ -172,4 +172,5 @@ public:
 
         Printer::print("error", getError());
     }
+    ~SerialSolver() override {}
 };

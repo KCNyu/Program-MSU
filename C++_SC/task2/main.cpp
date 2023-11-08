@@ -72,5 +72,7 @@ int main(int argc, char **argv)
     Printer::json();
 #endif
 
+    delete solver;
+    
     return 0;
 }

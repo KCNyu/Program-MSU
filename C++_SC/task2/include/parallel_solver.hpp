@@ -9,7 +9,9 @@ public:
     {
     }
 
-    void run()
+    void run() override
     {
     }
+
+    ~ParallelSolver() override {}
 };
