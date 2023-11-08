@@ -77,7 +77,7 @@ class SerialSolver : public Solver
         }
 
         double e = 0;
-#pragma omp parallel for collapse(3) reduction(max : e)
+#pragma omp parallel for collapse(3) reduction(max : e) if (!Printer::verbose)
         for (int i = 0; i <= task.N; i++)
         {
             for (int j = 0; j <= task.N; j++)
