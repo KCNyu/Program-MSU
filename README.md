@@ -17,6 +17,7 @@
     * [C++_LECTURE](./C++_LECTURE)
         * 算法与数据结构
         * *Melnikov B.F.*
+
 * ### **大三课程**
     * [C_UNIX](./C_UNIX)
         * 操作系统
@@ -55,9 +56,6 @@
     * [C++_HPC](./C++_HPC)
         * 并行高性能计算
         * *Yakobovsky M.V. Zhukov K.A.*
-    * [PYTHON_BASIC](./PYTHON_BASIC/)
-        * Python编程和数据分析基础
-        * *Khiryanov T.F.*
     * [WHY_THEORY](./WHY_THEORY/)
         * C程序的形式化验证
         * *Kornikhin E.B.*
