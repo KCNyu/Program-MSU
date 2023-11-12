@@ -1,3 +1,5 @@
+#include <memory>
+
 #include "parser.hpp"
 #include "task.hpp"
 #include "serial_solver.hpp"
@@ -49,9 +51,9 @@ int main(int argc, char **argv)
     }
 
 #ifdef USE_MPI
-    Solver *solver = new ParallelSolver(Task(L, L, L, N, T, K, steps));
+    std::shared_ptr<Solver> solver = std::make_shared<ParallelSolver>(Task(L, L, L, N, T, K, steps));
 #else
-    Solver *solver = new SerialSolver(Task(L, L, L, N, T, K, steps));
+    std::shared_ptr<Solver> solver = std::make_shared<SerialSolver>(Task(L, L, L, N, T, K, steps));
 #endif
     auto solverTask = [&]()
     { solver->run(); };
@@ -72,7 +74,5 @@ int main(int argc, char **argv)
     Printer::json();
 #endif
 
-    delete solver;
-    
     return 0;
 }
