@@ -130,7 +130,7 @@ class SerialSolver : public Solver
             {
                 for (int k = 1; k < task.N; k++)
                 {
-                    u[1][i][j][k] = u[0][i][j][k] + task.g.tau * task.g.tau / 2.0 * laplacian(u[0], i, j, k);
+                    u[1][i][j][k] = u[0][i][j][k] + task.f.a_2 * task.g.tau * task.g.tau / 2.0 * laplacian(u[0], i, j, k);
                 }
             }
         }

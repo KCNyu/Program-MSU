@@ -21,7 +21,14 @@ public:
         cout << setw(12) << name << ": " << setw(12) << setfill(' ') << value << endl;
 
         stringstream stream;
-        stream << std::fixed << std::setprecision(8) << value;
+        if (string(name) == "error")
+        {
+            stream << scientific << value;
+        }
+        else
+        {
+            stream << fixed << setprecision(8) << value;
+        }
         string v = stream.str();
         args.push_back(make_pair(name, v));
     }

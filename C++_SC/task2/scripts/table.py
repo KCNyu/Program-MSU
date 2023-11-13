@@ -35,8 +35,24 @@ for key, values in results.items():
         time_multiplier = value["time_multiplier"]
         error = value["error"]
         time = value["time"]
-        print(f"Threads: {threads}, Time: {time}, Error: {error}, Time Multiplier: {time_multiplier:.4f}")
+        print(
+            f"Threads: {threads}, Time: {time}, Error: {error}, Time Multiplier: {time_multiplier:.4f}"
+        )
     print()
+
+
+def format_as_latex(input_str):
+    # Convert the input string to a float
+    value = float(input_str)
+
+    # Extract the mantissa and exponent from the scientific notation
+    mantissa, exponent = f"{value:e}".split("e")
+
+    # Format the result in LaTeX style
+    formatted_str = f"$ {mantissa} * 10^{{{int(exponent)}}} $"
+
+    return formatted_str
+
 
 # for latex
 for key, values in results.items():
@@ -48,8 +64,12 @@ for key, values in results.items():
         error = value["error"]
         time = value["time"]
         if "128" in sys.argv[1]:
-            print(f"{threads} & $128^3$ & {time} & {error} & {time_multiplier:.4f} \\\\")
+            print(
+                f"{threads} & $128^3$ & {time} & {format_as_latex(error)} & {time_multiplier:.4f} \\\\"
+            )
         else:
-            print(f"{threads} & $256^3$ & {time} & {error} & {time_multiplier:.4f} \\\\")
+            print(
+                f"{threads} & $256^3$ & {time} & {format_as_latex(error)} & {time_multiplier:.4f} \\\\"
+            )
         print("\\hline")
     print()
