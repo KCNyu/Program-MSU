@@ -5,7 +5,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 data = pd.read_csv(sys.argv[1])
 
-sample_data = data.iloc[::150, :]
+sample_data = data.iloc[::300, :]
 
 i = sample_data['i']
 j = sample_data['j']

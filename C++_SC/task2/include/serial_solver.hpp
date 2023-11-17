@@ -37,7 +37,6 @@ struct Cube
     }
     ~Cube()
     {
-
         delete[] data;
     }
     inline double &operator()(int i, int j, int k) const
@@ -81,16 +80,18 @@ private:
     }
     void bounday_iterate(int n)
     {
-        // for x, y in first boundary condition = 0 as initial condition
 #pragma omp parallel for
         for (int i = 1; i < task.N; i++)
         {
 #pragma omp parallel for
             for (int j = 1; j < task.N; j++)
             {
+                double l = (u[loop(n - 1)](i + 1, j, 0) - 2 * u[loop(n - 1)](i, j, 0) + u[loop(n - 1)](i - 1, j, 0)) / (task.g.hx * task.g.hx) +
+                           (u[loop(n - 1)](i, j + 1, 0) - 2 * u[loop(n - 1)](i, j, 0) + u[loop(n - 1)](i, j - 1, 0)) / (task.g.hy * task.g.hy) +
+                           (u[loop(n - 1)](i, j, 0 + 1) - 2 * u[loop(n - 1)](i, j, 0) + u[loop(n - 1)](i, j, 0 + task.N - 1)) / (task.g.hz * task.g.hz);
                 u[loop(n)](i, j, 0) = 2 * u[loop(n - 1)](i, j, 0) -
                                       u[loop(n - 2)](i, j, 0) +
-                                      task.f.a_2 * task.g.tau * task.g.tau * laplacian(u[loop(n - 1)], i, j, task.N - 1);
+                                      task.f.a_2 * task.g.tau * task.g.tau * l;
             }
         }
 
@@ -100,9 +101,12 @@ private:
 #pragma omp parallel for
             for (int j = 1; j < task.N; j++)
             {
+                double l = (u[loop(n - 1)](i + 1, j, task.N) - 2 * u[loop(n - 1)](i, j, 0) + u[loop(n - 1)](i - 1, j, 0)) / (task.g.hx * task.g.hx) +
+                           (u[loop(n - 1)](i, j + 1, task.N) - 2 * u[loop(n - 1)](i, j, 0) + u[loop(n - 1)](i, j - 1, 0)) / (task.g.hy * task.g.hy) +
+                           (u[loop(n - 1)](i, j, task.N - task.N + 1) - 2 * u[loop(n - 1)](i, j, 0) + u[loop(n - 1)](i, j, task.N - 1)) / (task.g.hz * task.g.hz);
                 (u[loop(n)])(i, j, task.N) = 2 * u[loop(n - 1)](i, j, task.N) -
                                              u[loop(n - 2)](i, j, task.N) +
-                                             task.f.a_2 * task.g.tau * task.g.tau * laplacian(u[loop(n - 1)], i, j, task.N - 1);
+                                             task.f.a_2 * task.g.tau * task.g.tau * l;
             }
         }
     }
