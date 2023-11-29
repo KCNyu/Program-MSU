@@ -2,9 +2,6 @@
 NAME=lisy
 GROUP=628
 
-mv acl.conf $NAME-$GROUP-acl.conf
-mv bump.conf $NAME-$GROUP-bump.conf
-
 zip -r $NAME-$GROUP-p3_2.zip \
 	$NAME-$GROUP-acl.pcapng \
 	$NAME-$GROUP-acl.log \

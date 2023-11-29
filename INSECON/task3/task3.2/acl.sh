@@ -8,7 +8,7 @@ HOST=localhost
 PROXY=$HOST:$PORT
 
 DEFAULT_CONFIG=squid.conf.default
-ACL_CONFIG=acl.conf
+ACL_CONFIG=$NAME-$GROUP-acl.conf
 
 CUR_DIR=$(pwd)
 CHAIN_CA_NAME=$NAME-$GROUP-chain

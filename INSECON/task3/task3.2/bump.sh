@@ -8,7 +8,7 @@ HOST=localhost
 PROXY=$HOST:$PORT
 
 DEFAULT_CONFIG=squid.conf.default
-BUMP_CONFIG=bump.conf
+BUMP_CONFIG=$NAME-$GROUP-bump.conf
 
 CUR_DIR=`pwd`
 CHAIN_CA_NAME=$NAME-$GROUP-chain
