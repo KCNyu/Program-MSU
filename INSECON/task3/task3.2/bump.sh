@@ -25,6 +25,8 @@ acl httpbin_ip ssl::server_name httpbin.org
 
 http_access allow httpbin_ip
 
+acl sni_match at_step SslBump1
+ssl_bump peek sni_match
 ssl_bump bump httpbin_ip
 
 EOL

@@ -23,7 +23,7 @@ openssl req \
     -new \
     -key $BUMP_NAME.key \
     -out $BUMP_NAME.csr \
-    -subj "/C=RU/ST=Moscow/L=Moscow/O=$NAME/OU=$NAME P3_3/CN=$NAME Squid CA/emailAddress=$EMAIL"
+    -subj "/C=RU/ST=Moscow/L=Moscow/O=$NAME/OU=$NAME P3_2/CN=$NAME Squid CA/emailAddress=$EMAIL"
 
 # Sign Bump Certificate
 openssl x509 -req \
