@@ -2,6 +2,9 @@ import json
 import sys
 
 data = json.load(open(sys.argv[1]))
+time_name = "time"
+if sys.argv[2] == "mpi":
+    time_name = "MPI time"
 
 results = {}
 
@@ -12,16 +15,16 @@ for entry in data:
 
     multiplier = entry["threads"]
     if key == (1.0, 1.0):
-        time_multiplier = data[0]["time"] / entry["time"]
+        time_multiplier = data[0][time_name] / entry[time_name]
     else:
-        time_multiplier = data[1]["time"] / entry["time"]
+        time_multiplier = data[1][time_name] / entry[time_name]
 
     error = entry["error"]
-    time = entry["time"]
+    time = entry[time_name]
     results[key].append(
         {
             "threads": multiplier,
-            "time": time,
+            time_name: time,
             "time_multiplier": time_multiplier,
             "error": error,
         }
@@ -34,7 +37,7 @@ for key, values in results.items():
         threads = value["threads"]
         time_multiplier = value["time_multiplier"]
         error = value["error"]
-        time = value["time"]
+        time = value[time_name]
         print(
             f"Threads: {threads}, Time: {time}, Error: {error}, Time Multiplier: {time_multiplier:.4f}"
         )
@@ -62,7 +65,7 @@ for key, values in results.items():
         threads = value["threads"]
         time_multiplier = value["time_multiplier"]
         error = value["error"]
-        time = value["time"]
+        time = value[time_name]
         if "128" in sys.argv[1]:
             print(
                 f"{threads} & $128^3$ & {time} & {format_as_latex(error)} & {time_multiplier:.4f} \\\\"

@@ -10,7 +10,7 @@ LOCAL_CFLAGS := -Xclang \
 
 POLUS_CFLAGS := -fopenmp \
 			-std=c++11 \
-			-O3 \
+			-O2 \
 			-Iinclude
 
 ifeq ($(FLAG),mpi)
@@ -35,9 +35,16 @@ upload:
 submit:
 	scripts/submit.sh
 
+submit-mpi:
+	scripts/submit.sh mpi
+
 show:
 	scripts/show.sh task2_L1
 	scripts/show.sh task2_L2
+
+show-mpi:
+	scripts/show.sh task2_L1 mpi
+	scripts/show.sh task2_L2 mpi
 
 clean:
 	rm -f $(MAIN) numerical.* analytical.* error.*

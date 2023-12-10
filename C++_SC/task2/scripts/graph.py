@@ -9,12 +9,17 @@ data = json.load(open(sys.argv[1]))
 data_L1 = [entry for entry in data if entry["L"] == 1.0]
 data_LPi = [entry for entry in data if entry["L"] == 3.14159265]
 
+if sys.argv[3] == "mpi":
+    time_name = "MPI time"
+else:
+    time_name = "time"
+
 # Extract data for plotting
 threads_L1 = [entry["threads"] for entry in data_L1]
-times_L1 = [entry["time"] for entry in data_L1]
+times_L1 = [entry[time_name] for entry in data_L1]
 
 threads_LPi = [entry["threads"] for entry in data_LPi]
-times_LPi = [entry["time"] for entry in data_LPi]
+times_LPi = [entry[time_name] for entry in data_LPi]
 
 # Create line charts
 plt.plot(threads_L1, times_L1, marker='o', label='L=1.0')
