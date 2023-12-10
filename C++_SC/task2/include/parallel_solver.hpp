@@ -85,7 +85,7 @@ private:
         }
         else if (is_inside(remote, local, axis))
         {
-            std::tie(x_l, x_r, y_l, y_r, z_l, z_r) = local.unpack();
+            std::tie(x_l, x_r, y_l, y_r, z_l, z_r) = remote.unpack();
         }
         else
         {
