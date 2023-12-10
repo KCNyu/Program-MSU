@@ -2,6 +2,7 @@
 
 #include <tuple>
 #include <iostream>
+#include <climits>
 
 struct Scale
 {
@@ -60,7 +61,7 @@ struct Scale
                         if (sum < minSum)
                         {
                             minSum = sum;
-                            minSumTriplet = {a, b, c};
+                            minSumTriplet = std::make_tuple(a, b, c);
                         }
                     }
                 }

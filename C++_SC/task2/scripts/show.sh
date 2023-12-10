@@ -14,18 +14,22 @@ fi
 cd $DIR
 
 TMP="tmp.json"
+if [ $2 == "mpi" ]; then
+    cat *.out | grep -o -P '{"process": .*}' | sort -t ':' -k 2 -n >$TMP
 
-cat *.out | grep -o -P '{"threads": .*}' | sort -t ':' -k 2 -n > $TMP
+else
+    cat *.out | grep -o -P '{"threads": .*}' | sort -t ':' -k 2 -n >$TMP
+fi
 cat $TMP
 
-echo "[" > $RESULT
+echo "[" >$RESULT
 
 while read line; do
-    echo "  $line," >> $RESULT
-done < $TMP
+    echo "  $line," >>$RESULT
+done <$TMP
 
 # Remove the trailing comma from the last line
 sed -i '$ s/,$//' $RESULT
-echo "]" >> $RESULT
+echo "]" >>$RESULT
 
 rm $TMP
