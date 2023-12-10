@@ -34,7 +34,7 @@ private:
     void split(Scale origin)
     {
         int px, py, pz;
-        std::tie(px, py, pz) = Scale::split_triplet(p.size);
+        std::tie(pz, py, px) = Scale::split_triplet(p.size);
 
         int dx = std::max(1, origin.x_len / px);
         int dy = std::max(1, origin.y_len / py);
@@ -52,7 +52,7 @@ private:
                 {
                     int z_r = (k == pz - 1) ? origin.z_r : z_l + dz - 1;
 
-                    rank_scales.push_back(Scale(x_l, x_r, y_l, y_r, z_l, z_r));
+                    rank_scales.emplace_back(Scale(x_l, x_r, y_l, y_r, z_l, z_r));
 
                     z_l = z_r + 1;
                 }
@@ -63,106 +63,82 @@ private:
             x_l = x_r + 1;
         }
     }
-    bool IsInside(int xmin1, int xmax1, int ymin1, int ymax1, int xmin2, int xmax2, int ymin2, int ymax2) const
+    bool is_inside(const Scale &local, const Scale &remote, const Scale::Axis axis) const
     {
-        return xmin2 <= xmin1 && xmax1 <= xmax2 && ymin2 <= ymin1 && ymax1 <= ymax2;
+        switch (axis)
+        {
+        case Scale::Axis::X:
+            return local.y_l >= remote.y_l && remote.y_r >= local.y_r && local.z_l >= remote.z_l && remote.z_r >= local.z_r;
+        case Scale::Axis::Y:
+            return local.x_l >= remote.x_l && remote.x_r >= local.x_r && local.z_l >= remote.z_l && remote.z_r >= local.z_r;
+        case Scale::Axis::Z:
+            return local.x_l >= remote.x_l && remote.x_r >= local.x_r && local.y_l >= remote.y_l && remote.y_r >= local.y_r;
+        }
+    }
+    void handle_scales(int i, const Scale &local, const Scale &remote, int send, int recv, Scale::Axis axis)
+    {
+        int x_l, x_r, y_l, y_r, z_l, z_r;
+
+        if (is_inside(local, remote, axis))
+        {
+            std::tie(x_l, x_r, y_l, y_r, z_l, z_r) = local.unpack();
+        }
+        else if (is_inside(remote, local, axis))
+        {
+            std::tie(x_l, x_r, y_l, y_r, z_l, z_r) = local.unpack();
+        }
+        else
+        {
+            return;
+        }
+
+        Scale send_scale, recv_scale;
+        switch (axis)
+        {
+        case Scale::Axis::X:
+            send_scale = Scale(send, send, y_l, y_r, z_l, z_r);
+            recv_scale = Scale(recv, recv, y_l, y_r, z_l, z_r);
+            break;
+        case Scale::Axis::Y:
+            send_scale = Scale(x_l, x_r, send, send, z_l, z_r);
+            recv_scale = Scale(x_l, x_r, recv, recv, z_l, z_r);
+            break;
+        case Scale::Axis::Z:
+            send_scale = Scale(x_l, x_r, y_l, y_r, send, send);
+            recv_scale = Scale(x_l, x_r, y_l, y_r, recv, recv);
+            break;
+        }
+
+        wait_send.emplace_back(i, send_scale);
+        wait_recv.emplace_back(i, recv_scale);
     }
     void init_send_recv()
     {
-        Scale local_scale = rank_scales[p.rank];
+        auto local_scale = rank_scales[p.rank];
 
         for (int i = 0; i < p.size; i++)
         {
             if (i != p.rank)
             {
-                Scale remote_scale = rank_scales[i];
+                auto remote_scale = rank_scales[i];
 
                 if (local_scale.x_l == remote_scale.x_r + 1 || remote_scale.x_l == local_scale.x_r + 1)
                 {
-                    int xSend = local_scale.x_l == remote_scale.x_r + 1 ? local_scale.x_l : local_scale.x_r;
-                    int xRecv = remote_scale.x_l == local_scale.x_r + 1 ? remote_scale.x_l : remote_scale.x_r;
-                    int y_l, y_r, z_l, z_r;
-                    if (IsInside(local_scale.y_l, local_scale.y_r, local_scale.z_l, local_scale.z_r,
-                                 remote_scale.y_l, remote_scale.y_r, remote_scale.z_l, remote_scale.z_r))
-                    {
-                        y_l = local_scale.y_l;
-                        y_r = local_scale.y_r;
-                        z_l = local_scale.z_l;
-                        z_r = local_scale.z_r;
-                    }
-                    else if (IsInside(remote_scale.y_l, remote_scale.y_r, remote_scale.z_l, remote_scale.z_r,
-                                      local_scale.y_l, local_scale.y_r, local_scale.z_l, local_scale.z_r))
-                    {
-                        y_l = remote_scale.y_l;
-                        y_r = remote_scale.y_r;
-                        z_l = remote_scale.z_l;
-                        z_r = remote_scale.z_r;
-                    }
-                    else
-                    {
-                        continue;
-                    }
-                    wait_send.emplace_back(i, Scale(xSend, xSend, y_l, y_r, z_l, z_r));
-                    wait_recv.emplace_back(i, Scale(xRecv, xRecv, y_l, y_r, z_l, z_r));
-                    continue;
+                    int x_send = local_scale.x_l == remote_scale.x_r + 1 ? local_scale.x_l : local_scale.x_r;
+                    int x_recv = remote_scale.x_l == local_scale.x_r + 1 ? remote_scale.x_l : remote_scale.x_r;
+                    handle_scales(i, local_scale, remote_scale, x_send, x_recv, Scale::Axis::X);
                 }
-                if (local_scale.y_l == remote_scale.y_r + 1 or remote_scale.y_l == local_scale.y_r + 1)
+                else if (local_scale.y_l == remote_scale.y_r + 1 || remote_scale.y_l == local_scale.y_r + 1)
                 {
-                    int ySend = local_scale.y_l == remote_scale.y_r + 1 ? local_scale.y_l : local_scale.y_r;
-                    int yRecv = remote_scale.y_l == local_scale.y_r + 1 ? remote_scale.y_l : remote_scale.y_r;
-                    int x_l, x_r, z_l, z_r;
-                    if (IsInside(local_scale.x_l, local_scale.x_r, local_scale.z_l, local_scale.z_r,
-                                 remote_scale.x_l, remote_scale.x_r, remote_scale.z_l, remote_scale.z_r))
-                    {
-                        x_l = local_scale.x_l;
-                        x_r = local_scale.x_r;
-                        z_l = local_scale.z_l;
-                        z_r = local_scale.z_r;
-                    }
-                    else if (IsInside(remote_scale.x_l, remote_scale.x_r, remote_scale.z_l, remote_scale.z_r,
-                                      local_scale.x_l, local_scale.x_r, local_scale.z_l, local_scale.z_r))
-                    {
-                        x_l = remote_scale.x_l;
-                        x_r = remote_scale.x_r;
-                        z_l = remote_scale.z_l;
-                        z_r = remote_scale.z_r;
-                    }
-                    else
-                    {
-                        continue;
-                    }
-                    wait_send.emplace_back(i, Scale(x_l, x_r, ySend, ySend, z_l, z_r));
-                    wait_recv.emplace_back(i, Scale(x_l, x_r, yRecv, yRecv, z_l, z_r));
-                    continue;
+                    int y_send = local_scale.y_l == remote_scale.y_r + 1 ? local_scale.y_l : local_scale.y_r;
+                    int y_recv = remote_scale.y_l == local_scale.y_r + 1 ? remote_scale.y_l : remote_scale.y_r;
+                    handle_scales(i, local_scale, remote_scale, y_send, y_recv, Scale::Axis::Y);
                 }
-                if (local_scale.z_l == remote_scale.z_r + 1 or remote_scale.z_l == local_scale.z_r + 1)
+                else if (local_scale.z_l == remote_scale.z_r + 1 || remote_scale.z_l == local_scale.z_r + 1)
                 {
-                    int zSend = local_scale.z_l == remote_scale.z_r + 1 ? local_scale.z_l : local_scale.z_r;
-                    int zRecv = remote_scale.z_l == local_scale.z_r + 1 ? remote_scale.z_l : remote_scale.z_r;
-                    int x_l, x_r, y_l, y_r;
-                    if (IsInside(local_scale.x_l, local_scale.x_r, local_scale.y_l, local_scale.y_r,
-                                 remote_scale.x_l, remote_scale.x_r, remote_scale.y_l, remote_scale.y_r))
-                    {
-                        x_l = local_scale.x_l;
-                        x_r = local_scale.x_r;
-                        y_l = local_scale.y_l;
-                        y_r = local_scale.y_r;
-                    }
-                    else if (IsInside(remote_scale.x_l, remote_scale.x_r, remote_scale.y_l, remote_scale.y_r,
-                                      local_scale.x_l, local_scale.x_r, local_scale.y_l, local_scale.y_r))
-                    {
-                        x_l = remote_scale.x_l;
-                        x_r = remote_scale.x_r;
-                        y_l = remote_scale.y_l;
-                        y_r = remote_scale.y_r;
-                    }
-                    else
-                    {
-                        continue;
-                    }
-                    wait_send.emplace_back(i, Scale(x_l, x_r, y_l, y_r, zSend, zSend));
-                    wait_recv.emplace_back(i, Scale(x_l, x_r, y_l, y_r, zRecv, zRecv));
-                    continue;
+                    int z_send = local_scale.z_l == remote_scale.z_r + 1 ? local_scale.z_l : local_scale.z_r;
+                    int z_recv = remote_scale.z_l == local_scale.z_r + 1 ? remote_scale.z_l : remote_scale.z_r;
+                    handle_scales(i, local_scale, remote_scale, z_send, z_recv, Scale::Axis::Z);
                 }
             }
         }
@@ -171,14 +147,6 @@ private:
     {
         Cube send_cube(remote_scale);
 
-        // cout << "====================" << endl;
-        // cout << "rank " << p.rank << endl;
-        // cout << remote_scale;
-        // cout << "~~~~~~~~~~~~~~~~~~~~" << endl;
-        // cout << c.scale;
-        // cout << "====================" << endl;
-
-        // MPI_Barrier(MPI_COMM_WORLD);
         for (int i = remote_scale.x_l; i <= remote_scale.x_r; i++)
         {
             for (int j = remote_scale.y_l; j <= remote_scale.y_r; j++)
@@ -200,29 +168,14 @@ private:
         std::vector<MPI_Request> requests(2);
         std::vector<MPI_Status> statuses(2);
 
-        // cout << "===rank: " << p.rank << "===" << endl;
-        // for (int i = 0; i < wait_send.size(); i++)
-        // {
-        //     cout << "send to " << wait_send[i].first << " with size " << wait_send[i].second.size << endl;
-        // }
-        // for (int i = 0; i < wait_recv.size(); i++)
-        // {
-        //     cout << "recv from " << wait_recv[i].first << " with size " << wait_recv[i].second.size << endl;
-        // }
-        // cout << "====================" << endl;
         for (int i = 0; i < wait_recv.size(); i++)
         {
             Cube send_cube = get_send_cube(u[loop(n)], wait_send[i].second);
             recv_cubes[i] = Cube(wait_recv[i].second);
 
-            // cout << "rank " << p.rank << " send to " << wait_send[i].first << " with size " << send_cube.scale << endl;
-            // cout << "rank " << p.rank << " recv from " << wait_recv[i].first << " with size " << wait_recv[i].second << endl;
-
             MPI_Isend(send_cube.data, wait_send[i].second.size, MPI_DOUBLE, wait_send[i].first, 0, MPI_COMM_WORLD, &requests[0]);
             MPI_Irecv(recv_cubes[i].data, wait_recv[i].second.size, MPI_DOUBLE, wait_recv[i].first, 0, MPI_COMM_WORLD, &requests[1]);
             MPI_Waitall(2, requests.data(), statuses.data());
-        
-            // cout << "i == " << i << endl;
         }
     }
 
@@ -285,15 +238,20 @@ private:
         double dz = (actual_u(c, i, j, k - 1) - 2 * c(i, j, k) + actual_u(c, i, j, k + 1)) / (task.g.hz * task.g.hz);
         return dx + dy + dz;
     }
-    void init()
+    void reserve()
     {
         split(Scale(task.N));
-        Scale local_scale = rank_scales[p.rank];
+
         for (int i = 0; i < 3; i++)
         {
-            u[i] = Cube(local_scale);
+            u[i] = Cube(rank_scales[p.rank]);
         }
+
         init_send_recv();
+    }
+    void init()
+    {
+        reserve();
 
         init_boundary(u[0], 0);
         init_boundary(u[1], task.g.tau);
@@ -321,13 +279,6 @@ private:
 
         send_recv_cube(0);
 
-        // cout << "~~~~~~~~~~~~~~~" << endl;
-        // for (int i = 0; i < recv_cubes.size(); i++)
-        // {
-        //     cout << recv_cubes[i].scale;
-        // }
-        // cout << "~~~~~~~~~~~~~~~" << endl;
-
 #pragma omp parallel for
         for (int i = x_l; i <= x_r; i++)
         {
@@ -336,17 +287,53 @@ private:
                 for (int k = z_l; k <= z_r; k++)
                 {
                     u[1](i, j, k) = u[0](i, j, k) + task.f.a_2 * task.g.tau * task.g.tau / 2.0 * laplacian(u[0], i, j, k);
-                    // if (p.rank == 0)
-                    // {
-                    //     cout << "i = " << i << " j = " << j << " k = " << k << " u[1] = " << u[1](i, j, k) << endl;
-                    // }
                 }
             }
         }
     }
     void iterate_boundary(int n)
     {
-        init_boundary(u[loop(n)], n * task.g.tau);
+        int x_l = std::max(1, u[loop(n)].scale.x_l);
+        int x_r = std::min(task.N - 1, u[loop(n)].scale.x_r);
+
+        int y_l = std::max(1, u[loop(n)].scale.y_l);
+        int y_r = std::min(task.N - 1, u[loop(n)].scale.y_r);
+
+        int z_l = std::max(1, u[loop(n)].scale.z_l);
+        int z_r = std::min(task.N - 1, u[loop(n)].scale.z_r);
+
+        if (u[loop(n)].scale.z_l == 0)
+        {
+#pragma omp parallel for
+            for (int i = x_l; i <= x_r; i++)
+            {
+                for (int j = y_l; j <= y_r; j++)
+                {
+                    double l = (actual_u(u[loop(n - 1)], i + 1, j, 0) - 2 * actual_u(u[loop(n - 1)], i, j, 0) + actual_u(u[loop(n - 1)], i - 1, j, 0)) / (task.g.hx * task.g.hx) +
+                               (actual_u(u[loop(n - 1)], i, j + 1, 0) - 2 * actual_u(u[loop(n - 1)], i, j, 0) + actual_u(u[loop(n - 1)], i, j - 1, 0)) / (task.g.hy * task.g.hy) +
+                               (actual_u(u[loop(n - 1)], i, j, 0 + 1) - 2 * actual_u(u[loop(n - 1)], i, j, 0) + actual_u(u[loop(n - 1)], i, j, 0 + task.N - 1)) / (task.g.hz * task.g.hz);
+                    u[loop(n)](i, j, 0) = 2 * u[loop(n - 1)](i, j, 0) -
+                                          u[loop(n - 2)](i, j, 0) +
+                                          task.f.a_2 * task.g.tau * task.g.tau * l;
+                }
+            }
+        }
+        if (u[loop(n)].scale.z_r == task.N)
+        {
+#pragma omp parallel for
+            for (int i = x_l; i <= x_r; i++)
+            {
+                for (int j = y_l; j <= y_r; j++)
+                {
+                    double l = (actual_u(u[loop(n - 1)], i + 1, j, task.N) - 2 * actual_u(u[loop(n - 1)], i, j, task.N) + actual_u(u[loop(n - 1)], i - 1, j, task.N)) / (task.g.hx * task.g.hx) +
+                               (actual_u(u[loop(n - 1)], i, j + 1, task.N) - 2 * actual_u(u[loop(n - 1)], i, j, task.N) + actual_u(u[loop(n - 1)], i, j - 1, task.N)) / (task.g.hy * task.g.hy) +
+                               (actual_u(u[loop(n - 1)], i, j, task.N - task.N + 1) - 2 * actual_u(u[loop(n - 1)], i, j, task.N) + actual_u(u[loop(n - 1)], i, j, task.N - 1)) / (task.g.hz * task.g.hz);
+                    (u[loop(n)])(i, j, task.N) = 2 * u[loop(n - 1)](i, j, task.N) -
+                                                 u[loop(n - 2)](i, j, task.N) +
+                                                 task.f.a_2 * task.g.tau * task.g.tau * l;
+                }
+            }
+        }
     }
     void iterate(int n)
     {

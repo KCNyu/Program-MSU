@@ -61,9 +61,9 @@ private:
         {
             for (int j = 1; j < task.N; j++)
             {
-                double l = (u[loop(n - 1)](i + 1, j, task.N) - 2 * u[loop(n - 1)](i, j, 0) + u[loop(n - 1)](i - 1, j, 0)) / (task.g.hx * task.g.hx) +
-                           (u[loop(n - 1)](i, j + 1, task.N) - 2 * u[loop(n - 1)](i, j, 0) + u[loop(n - 1)](i, j - 1, 0)) / (task.g.hy * task.g.hy) +
-                           (u[loop(n - 1)](i, j, task.N - task.N + 1) - 2 * u[loop(n - 1)](i, j, 0) + u[loop(n - 1)](i, j, task.N - 1)) / (task.g.hz * task.g.hz);
+                double l = (u[loop(n - 1)](i + 1, j, task.N) - 2 * u[loop(n - 1)](i, j, task.N) + u[loop(n - 1)](i - 1, j, task.N)) / (task.g.hx * task.g.hx) +
+                           (u[loop(n - 1)](i, j + 1, task.N) - 2 * u[loop(n - 1)](i, j, task.N) + u[loop(n - 1)](i, j - 1, task.N)) / (task.g.hy * task.g.hy) +
+                           (u[loop(n - 1)](i, j, task.N - task.N + 1) - 2 * u[loop(n - 1)](i, j, task.N) + u[loop(n - 1)](i, j, task.N - 1)) / (task.g.hz * task.g.hz);
                 (u[loop(n)])(i, j, task.N) = 2 * u[loop(n - 1)](i, j, task.N) -
                                              u[loop(n - 2)](i, j, task.N) +
                                              task.f.a_2 * task.g.tau * task.g.tau * l;

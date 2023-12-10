@@ -11,6 +11,13 @@ struct Scale
     int z_l, z_r, z_len;
     int size;
 
+    enum class Axis
+    {
+        X,
+        Y,
+        Z
+    };
+
     Scale() : x_l(0), x_r(0), y_l(0), x_len(0), y_r(0), y_len(0), z_l(0), z_r(0), z_len(0), size(0) {}
     Scale(int N) : x_l(0), x_r(N), x_len(N + 1), y_l(0), y_r(N), y_len(N + 1), z_l(0), z_r(N), z_len(N + 1), size(x_len * y_len * z_len) {}
     Scale(int x_l, int x_r, int y_l, int y_r, int z_l, int z_r) : x_l(x_l), x_r(x_r), y_l(y_l), y_r(y_r), z_l(z_l), z_r(z_r)
@@ -19,6 +26,11 @@ struct Scale
         y_len = y_r - y_l + 1;
         z_len = z_r - z_l + 1;
         size = x_len * y_len * z_len;
+    }
+
+    std::tuple<int, int, int, int, int, int> unpack() const
+    {
+        return std::make_tuple(x_l, x_r, y_l, y_r, z_l, z_r);
     }
 
     friend std::ostream &operator<<(std::ostream &os, const Scale &s)
