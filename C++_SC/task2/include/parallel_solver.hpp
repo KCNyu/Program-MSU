@@ -129,24 +129,42 @@ private:
                     send = local_scale.x_l == remote_scale.x_r + 1 ? local_scale.x_l : local_scale.x_r;
                     recv = remote_scale.x_l == local_scale.x_r + 1 ? remote_scale.x_l : remote_scale.x_r;
                     axis = Scale::Axis::X;
+
+                    handle_scales(i, local_scale, remote_scale, send, recv, axis);
                 }
-                else if (local_scale.y_l == remote_scale.y_r + 1 || remote_scale.y_l == local_scale.y_r + 1)
+                if (local_scale.y_l == remote_scale.y_r + 1 || remote_scale.y_l == local_scale.y_r + 1)
                 {
                     send = local_scale.y_l == remote_scale.y_r + 1 ? local_scale.y_l : local_scale.y_r;
                     recv = remote_scale.y_l == local_scale.y_r + 1 ? remote_scale.y_l : remote_scale.y_r;
                     axis = Scale::Axis::Y;
+
+                    handle_scales(i, local_scale, remote_scale, send, recv, axis);
                 }
-                else if (local_scale.z_l == remote_scale.z_r + 1 || remote_scale.z_l == local_scale.z_r + 1)
+                if (local_scale.z_l == remote_scale.z_r + 1 || remote_scale.z_l == local_scale.z_r + 1)
                 {
                     send = local_scale.z_l == remote_scale.z_r + 1 ? local_scale.z_l : local_scale.z_r;
                     recv = remote_scale.z_l == local_scale.z_r + 1 ? remote_scale.z_l : remote_scale.z_r;
                     axis = Scale::Axis::Z;
+
+                    handle_scales(i, local_scale, remote_scale, send, recv, axis);
                 }
-                else
+                // periodic boundary conditions for Axis::Z
+                if (local_scale.z_l == 0 && remote_scale.z_r == task.N)
                 {
-                    continue;
+                    send = 0 + 1;
+                    recv = task.N - 1;
+                    axis = Scale::Axis::Z;
+
+                    handle_scales(i, local_scale, remote_scale, send, recv, axis);
                 }
-                handle_scales(i, local_scale, remote_scale, send, recv, axis);
+                if (local_scale.z_r == task.N && remote_scale.z_l == 0)
+                {
+                    send = task.N - 1;
+                    recv = 0 + 1;
+                    axis = Scale::Axis::Z;
+
+                    handle_scales(i, local_scale, remote_scale, send, recv, axis);
+                }
             }
         }
     }
@@ -227,7 +245,7 @@ private:
             }
         }
 
-        return 0;
+        throw std::runtime_error("actual_u: no cube found");
     }
     inline double laplacian(Cube &c, int i, int j, int k) const
     {
@@ -247,8 +265,7 @@ private:
 
         init_send_recv();
 
-
-        for (auto r: wait_recv)
+        for (auto r : wait_recv)
         {
             recv_cubes.emplace_back(r.second);
         }
