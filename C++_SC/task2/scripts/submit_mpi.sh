@@ -10,23 +10,19 @@ if [ "$1" = "mpi" ]; then
     # N = 128
     for p in 1 2 4; do
         for t in 1 2 4 8; do
-            bsub -n $p \
-                -q short \
+            mpisubmit.pl -p $p \
                 -W 00:10 \
-                -o $OUTPUT_DIR/task2_thread${t}_mpi${p}.out \
-                -e $OUTPUT_DIR/task2_thread${t}_mpi${p}.err \
-                -R "affinity[core(10,same=socket,exclusive=(socket,alljobs)):membind=localonly:distribute=pack(socket=1)]" \
-                OMP_NUM_THREADS=$t \
-                mpirun -n $p ./main -L 1.0
+                --stdout $OUTPUT_DIR/task2_thread${t}_mpi${p}.out \
+                --stderr $OUTPUT_DIR/task2_thread${t}_mpi${p}.err \
+                -t $t \
+                ./main -- -L 1.0
 
-            bsub -n $p \
-                -q short \
+            mpisubmit.pl -p $p \
                 -W 00:10 \
-                -o $OUTPUT_DIR/task2_thread${t}_mpi${p}_pi.out \
-                -e $OUTPUT_DIR/task2_thread${t}_mpi${p}_pi.err \
-                -R "affinity[core(10,same=socket,exclusive=(socket,alljobs)):membind=localonly:distribute=pack(socket=1)]" \
-                OMP_NUM_THREADS=$t \
-                mpirun -n $p ./main
+                --stdout $OUTPUT_DIR/task2_thread${t}_mpi${p}_pi.out \
+                --stderr $OUTPUT_DIR/task2_thread${t}_mpi${p}_pi.err \
+                -t $t \
+                ./main
         done
     done
 
@@ -38,23 +34,19 @@ if [ "$1" = "mpi" ]; then
     # N = 256
     for p in 1 2 4; do
         for t in 1 2 4 8; do
-            bsub -n $p \
-                -q short \
+            mpisubmit.pl -p $p \
                 -W 00:10 \
-                -o $OUTPUT_DIR/task2_thread${t}_mpi${p}.out \
-                -e $OUTPUT_DIR/task2_thread${t}_mpi${p}.err \
-                -R "affinity[core(10,same=socket,exclusive=(socket,alljobs)):membind=localonly:distribute=pack(socket=1)]" \
-                OMP_NUM_THREADS=$t \
-                mpirun -n $p ./main -L 1.0 -N 256
+                --stdout $OUTPUT_DIR/task2_thread${t}_mpi${p}.out \
+                --stderr $OUTPUT_DIR/task2_thread${t}_mpi${p}.err \
+                -t $t \
+                ./main -- -L 1.0 -N 256
 
-            bsub -n $p \
-                -q short \
+            mpisubmit.pl -p $p \
                 -W 00:10 \
-                -o $OUTPUT_DIR/task2_thread${t}_mpi${p}_pi.out \
-                -e $OUTPUT_DIR/task2_thread${t}_mpi${p}_pi.err \
-                -R "affinity[core(10,same=socket,exclusive=(socket,alljobs)):membind=localonly:distribute=pack(socket=1)]" \
-                OMP_NUM_THREADS=$t \
-                mpirun -n $p ./main -N 256
+                --stdout $OUTPUT_DIR/task2_thread${t}_mpi${p}_pi.out \
+                --stderr $OUTPUT_DIR/task2_thread${t}_mpi${p}_pi.err \
+                -t $t \
+                ./main -- -N 256
         done
     done
 

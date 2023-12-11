@@ -5,14 +5,16 @@ import sys
 
 # Load JSON data
 data = json.load(open(sys.argv[1]))
-# Separate data based on L value
-data_L1 = [entry for entry in data if entry["L"] == 1.0]
-data_LPi = [entry for entry in data if entry["L"] == 3.14159265]
 
 if sys.argv[3] == "mpi":
     time_name = "MPI time"
+    process = int(sys.argv[4])
 else:
     time_name = "time"
+
+# Separate data based on L value
+data_L1 = [entry for entry in data if entry["L"] == 1.0 and entry["process"] == process]
+data_LPi = [entry for entry in data if entry["L"] == 3.14159265 and entry["process"] == process]
 
 # Extract data for plotting
 threads_L1 = [entry["threads"] for entry in data_L1]

@@ -3,21 +3,26 @@ import sys
 
 data = json.load(open(sys.argv[1]))
 time_name = "time"
+process = 0
 if sys.argv[2] == "mpi":
     time_name = "MPI time"
+    process = int(sys.argv[3])
 
 results = {}
 
 for entry in data:
+    if sys.argv[2] == "mpi":
+        if entry["process"] != process:
+            continue
     key = (entry["L"], entry["T"])
     if key not in results:
         results[key] = []
 
     multiplier = entry["threads"]
     if key == (1.0, 1.0):
-        time_multiplier = data[0][time_name] / entry[time_name]
+        time_multiplier = data[0 + (process - 1) * 8][time_name] / entry[time_name]
     else:
-        time_multiplier = data[1][time_name] / entry[time_name]
+        time_multiplier = data[1 + (process - 1) * 8][time_name] / entry[time_name]
 
     error = entry["error"]
     time = entry[time_name]

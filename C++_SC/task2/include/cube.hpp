@@ -33,7 +33,11 @@ struct Scale
     {
         return std::make_tuple(x_l, x_r, y_l, y_r, z_l, z_r);
     }
-
+    inline const bool contains(int i, int j, int k) const
+    {
+        return i >= x_l && i <= x_r && j >= y_l && j <= y_r && k >= z_l && k <= z_r;
+    }
+    
     friend std::ostream &operator<<(std::ostream &os, const Scale &s)
     {
         os << "x_l: " << s.x_l << " x_r: " << s.x_r << " x_len: " << s.x_len << std::endl;

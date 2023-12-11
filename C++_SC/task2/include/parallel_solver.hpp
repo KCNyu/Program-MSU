@@ -114,32 +114,39 @@ private:
     }
     void init_send_recv()
     {
-        auto local_scale = rank_scales[p.rank];
+        Scale local_scale = rank_scales[p.rank];
 
         for (int i = 0; i < p.size; i++)
         {
             if (i != p.rank)
             {
-                auto remote_scale = rank_scales[i];
+                Scale remote_scale = rank_scales[i];
+                int send = -1, recv = -1;
+                Scale::Axis axis = Scale::Axis::X;
 
                 if (local_scale.x_l == remote_scale.x_r + 1 || remote_scale.x_l == local_scale.x_r + 1)
                 {
-                    int x_send = local_scale.x_l == remote_scale.x_r + 1 ? local_scale.x_l : local_scale.x_r;
-                    int x_recv = remote_scale.x_l == local_scale.x_r + 1 ? remote_scale.x_l : remote_scale.x_r;
-                    handle_scales(i, local_scale, remote_scale, x_send, x_recv, Scale::Axis::X);
+                    send = local_scale.x_l == remote_scale.x_r + 1 ? local_scale.x_l : local_scale.x_r;
+                    recv = remote_scale.x_l == local_scale.x_r + 1 ? remote_scale.x_l : remote_scale.x_r;
+                    axis = Scale::Axis::X;
                 }
                 else if (local_scale.y_l == remote_scale.y_r + 1 || remote_scale.y_l == local_scale.y_r + 1)
                 {
-                    int y_send = local_scale.y_l == remote_scale.y_r + 1 ? local_scale.y_l : local_scale.y_r;
-                    int y_recv = remote_scale.y_l == local_scale.y_r + 1 ? remote_scale.y_l : remote_scale.y_r;
-                    handle_scales(i, local_scale, remote_scale, y_send, y_recv, Scale::Axis::Y);
+                    send = local_scale.y_l == remote_scale.y_r + 1 ? local_scale.y_l : local_scale.y_r;
+                    recv = remote_scale.y_l == local_scale.y_r + 1 ? remote_scale.y_l : remote_scale.y_r;
+                    axis = Scale::Axis::Y;
                 }
                 else if (local_scale.z_l == remote_scale.z_r + 1 || remote_scale.z_l == local_scale.z_r + 1)
                 {
-                    int z_send = local_scale.z_l == remote_scale.z_r + 1 ? local_scale.z_l : local_scale.z_r;
-                    int z_recv = remote_scale.z_l == local_scale.z_r + 1 ? remote_scale.z_l : remote_scale.z_r;
-                    handle_scales(i, local_scale, remote_scale, z_send, z_recv, Scale::Axis::Z);
+                    send = local_scale.z_l == remote_scale.z_r + 1 ? local_scale.z_l : local_scale.z_r;
+                    recv = remote_scale.z_l == local_scale.z_r + 1 ? remote_scale.z_l : remote_scale.z_r;
+                    axis = Scale::Axis::Z;
                 }
+                else
+                {
+                    continue;
+                }
+                handle_scales(i, local_scale, remote_scale, send, recv, axis);
             }
         }
     }
@@ -162,9 +169,6 @@ private:
     }
     void send_recv_cube(int n)
     {
-        recv_cubes.clear();
-        recv_cubes.resize(wait_recv.size());
-
         std::vector<MPI_Request> requests(2);
         std::vector<MPI_Status> statuses(2);
 
@@ -210,20 +214,14 @@ private:
     }
     double actual_u(Cube &c, int i, int j, int k) const
     {
-        if (c.scale.x_l <= i && i <= c.scale.x_r &&
-            c.scale.y_l <= j && j <= c.scale.y_r &&
-            c.scale.z_l <= k && k <= c.scale.z_r)
+        if (c.scale.contains(i, j, k))
         {
             return c(i, j, k);
         }
 
         for (int r_i = 0; r_i < recv_cubes.size(); r_i++)
         {
-            Scale remote_scale = recv_cubes[r_i].scale;
-
-            if (remote_scale.x_l <= i && i <= remote_scale.x_r &&
-                remote_scale.y_l <= j && j <= remote_scale.y_r &&
-                remote_scale.z_l <= k && k <= remote_scale.z_r)
+            if (recv_cubes[r_i].scale.contains(i, j, k))
             {
                 return recv_cubes[r_i](i, j, k);
             }
@@ -248,6 +246,12 @@ private:
         }
 
         init_send_recv();
+
+
+        for (auto r: wait_recv)
+        {
+            recv_cubes.emplace_back(r.second);
+        }
     }
     void init()
     {
