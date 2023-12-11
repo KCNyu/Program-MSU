@@ -1,4 +1,5 @@
 CC := g++
+LOCAL_CC := g++
 
 LOCAL_CFLAGS := -Xclang \
 		-fopenmp \
@@ -10,13 +11,17 @@ LOCAL_CFLAGS := -Xclang \
 
 POLUS_CFLAGS := -fopenmp \
 			-std=c++11 \
-			-O2 \
-			-Iinclude
+			-O3 \
+			-Iinclude \
+			-I/opt/ibm/spectrum_mpi/include \
+			-L/opt/ibm/spectrum_mpi/lib \
+			-lmpiprofilesupport \
+			-lmpi_ibm
 
 ifeq ($(FLAG),mpi)
     LOCAL_CFLAGS += -DUSE_MPI
 	POLUS_CFLAGS += -DUSE_MPI
-	CC := mpic++
+	LOCAL_CC := mpic++
 endif
 
 MAIN := main
@@ -24,7 +29,7 @@ MAIN := main
 all: compile-local
 
 compile-local:
-	$(CC) $(LOCAL_CFLAGS) $(MAIN).cpp -o $(MAIN)
+	$(LOCAL_CC) $(LOCAL_CFLAGS) $(MAIN).cpp -o $(MAIN)
 	
 compile-polus:
 	$(CC) $(POLUS_CFLAGS) $(MAIN).cpp -o $(MAIN)

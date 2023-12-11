@@ -7,30 +7,30 @@ time_name = "time"
 process = 0
 if sys.argv[2] == "mpi":
     time_name = "MPI time"
-    process = int(sys.argv[3])
 
 results = {}
 
 for entry in data:
-    if sys.argv[2] == "mpi":
-        if entry["process"] != process:
-            continue
+    # if sys.argv[2] == "mpi":
+    #     if entry["process"] != process:
+    #         continue
     key = (entry["L"], entry["T"])
     if key not in results:
         results[key] = []
 
     multiplier = entry["threads"]
-    shift = int(math.log2(process))
     if key == (1.0, 1.0):
-        time_multiplier = data[0 + shift * 8][time_name] / entry[time_name]
+        time_multiplier = data[0][time_name] / entry[time_name]
     else:
-        time_multiplier = data[1 + shift * 8][time_name] / entry[time_name]
+        time_multiplier = data[1][time_name] / entry[time_name]
 
     error = entry["error"]
     time = entry[time_name]
+    process = entry["process"]
     results[key].append(
         {
             "threads": multiplier,
+            "process": process,
             time_name: time,
             "time_multiplier": time_multiplier,
             "error": error,
@@ -45,8 +45,9 @@ for key, values in results.items():
         time_multiplier = value["time_multiplier"]
         error = value["error"]
         time = value[time_name]
+        process = value["process"]
         print(
-            f"Threads: {threads}, Time: {time}, Error: {error}, Time Multiplier: {time_multiplier:.4f}"
+            f"Process: {process}, Threads: {threads}, Time: {time}, Error: {error}, Time Multiplier: {time_multiplier:.4f}"
         )
     print()
 
@@ -73,13 +74,14 @@ for key, values in results.items():
         time_multiplier = value["time_multiplier"]
         error = value["error"]
         time = value[time_name]
+        process = value["process"]
         if "128" in sys.argv[1]:
             print(
-                f"{threads} & $128^3$ & {time} & {format_as_latex(error)} & {time_multiplier:.4f} \\\\"
+                f"{process} & {threads} & $128^3$ & {time} & {format_as_latex(error)} & {time_multiplier:.4f} \\\\"
             )
         else:
             print(
-                f"{threads} & $256^3$ & {time} & {format_as_latex(error)} & {time_multiplier:.4f} \\\\"
+                f"{process} & {threads} & $256^3$ & {time} & {format_as_latex(error)} & {time_multiplier:.4f} \\\\"
             )
         print("\\hline")
     print()
