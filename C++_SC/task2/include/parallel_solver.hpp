@@ -169,10 +169,8 @@ private:
             }
         }
     }
-    Cube get_send_cube(Cube &c, Scale remote_scale)
+    void get_send_cube(Cube &send_cube, Cube &c, Scale remote_scale)
     {
-        Cube send_cube(remote_scale);
-
         for (int i = remote_scale.x_l; i <= remote_scale.x_r; i++)
         {
             for (int j = remote_scale.y_l; j <= remote_scale.y_r; j++)
@@ -183,8 +181,6 @@ private:
                 }
             }
         }
-
-        return send_cube;
     }
     void send_recv_cube(int n)
     {
@@ -195,7 +191,7 @@ private:
 
         for (int i = 0; i < sz; i++)
         {
-            send_cubes[i] = get_send_cube(u[loop(n)], wait_send[i].second);
+            get_send_cube(send_cubes[i], u[loop(n)], wait_send[i].second);
             MPI_Isend(send_cubes[i].data, wait_send[i].second.size, MPI_DOUBLE, wait_send[i].first, 0, MPI_COMM_WORLD, &requests[i]);
             MPI_Irecv(recv_cubes[i].data, wait_recv[i].second.size, MPI_DOUBLE, wait_recv[i].first, 0, MPI_COMM_WORLD, &requests[i + sz]);
         }
