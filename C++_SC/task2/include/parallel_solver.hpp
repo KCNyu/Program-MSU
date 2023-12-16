@@ -26,6 +26,7 @@ private:
     Process p;
 
     std::vector<Scale> rank_scales;
+    std::vector<Cube> send_cubes;
     std::vector<Cube> recv_cubes;
 
     std::vector<std::pair<int, Scale>> wait_send;
@@ -187,18 +188,19 @@ private:
     }
     void send_recv_cube(int n)
     {
-        std::vector<MPI_Request> requests(2);
-        std::vector<MPI_Status> statuses(2);
+        int sz = wait_send.size();
 
-        for (int i = 0; i < wait_recv.size(); i++)
+        std::vector<MPI_Request> requests(2 * sz);
+        std::vector<MPI_Status> statuses(2 * sz);
+
+        for (int i = 0; i < sz; i++)
         {
-            Cube send_cube = get_send_cube(u[loop(n)], wait_send[i].second);
-            recv_cubes[i] = Cube(wait_recv[i].second);
-
-            MPI_Isend(send_cube.data, wait_send[i].second.size, MPI_DOUBLE, wait_send[i].first, 0, MPI_COMM_WORLD, &requests[0]);
-            MPI_Irecv(recv_cubes[i].data, wait_recv[i].second.size, MPI_DOUBLE, wait_recv[i].first, 0, MPI_COMM_WORLD, &requests[1]);
-            MPI_Waitall(2, requests.data(), statuses.data());
+            send_cubes[i] = get_send_cube(u[loop(n)], wait_send[i].second);
+            MPI_Isend(send_cubes[i].data, wait_send[i].second.size, MPI_DOUBLE, wait_send[i].first, 0, MPI_COMM_WORLD, &requests[i]);
+            MPI_Irecv(recv_cubes[i].data, wait_recv[i].second.size, MPI_DOUBLE, wait_recv[i].first, 0, MPI_COMM_WORLD, &requests[i + sz]);
         }
+
+        MPI_Waitall(2 * sz, requests.data(), statuses.data());
     }
 
     void init_boundary(Cube &c, double t)
@@ -265,6 +267,10 @@ private:
 
         init_send_recv();
 
+        for (auto s : wait_send)
+        {
+            send_cubes.emplace_back(s.second);
+        }
         for (auto r : wait_recv)
         {
             recv_cubes.emplace_back(r.second);
@@ -385,21 +391,21 @@ private:
 
         iterate_boundary(n + 1);
     }
-    double getError()
+    double getError(int n)
     {
         double e = 0;
 
 #pragma omp parallel for reduction(max : e)
-        for (int i = u[0].scale.x_l; i <= u[0].scale.x_r; i++)
+        for (int i = u[loop(n)].scale.x_l; i <= u[loop(n)].scale.x_r; i++)
         {
 #pragma omp parallel for reduction(max : e)
-            for (int j = u[0].scale.y_l; j <= u[0].scale.y_r; j++)
+            for (int j = u[loop(n)].scale.y_l; j <= u[loop(n)].scale.y_r; j++)
             {
 #pragma omp parallel for reduction(max : e)
-                for (int k = u[0].scale.z_l; k <= u[0].scale.z_r; k++)
+                for (int k = u[loop(n)].scale.z_l; k <= u[loop(n)].scale.z_r; k++)
                 {
-                    double numerical = u[loop(task.steps)](i, j, k);
-                    double analytical = task.f(i * task.g.hx, j * task.g.hy, k * task.g.hz, task.g.tau * task.steps);
+                    double numerical = u[loop(n)](i, j, k);
+                    double analytical = task.f(i * task.g.hx, j * task.g.hy, k * task.g.hz, task.g.tau * n);
                     double local_error = abs(numerical - analytical);
 
                     e = std::max(e, local_error);
@@ -423,12 +429,14 @@ public:
     {
         init();
 
+        double error = 0;
+
         for (int n = 1; n < task.steps; n++)
         {
             iterate(n);
+            error = max(error, getError(n + 1));
         }
 
-        double error = getError();
         if (p.rank == 0)
         {
             Printer::print("error", error);
